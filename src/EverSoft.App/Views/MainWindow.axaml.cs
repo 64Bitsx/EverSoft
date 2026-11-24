@@ -247,13 +247,11 @@ public partial class MainWindow : Window, IJanelas
         ("coments", "Coments.xlsx"),
         ("base_prepara", "Base Prepara.xls"),
         ("boletim_xlsm", "Boletim.xlsm"),
-        ("boletim_imagem", "Imagem do boletim"),
+        ("boletim_imagem", "Imagem do boletim (Boletim.png, trocada todo mês)"),
         ("fotos_alunos", "Pasta das fotos dos alunos"),
         ("fotos_bmp", "Pasta das fotos BMP"),
         ("audios_lembretes", "Pasta dos áudios de lembrete"),
         ("justificativas_json_dir", "Pasta dos JSONs de justificativas"),
-        ("boas_vindas_modelo", "Modelo de boas-vindas (.ppsm)"),
-        ("pasta_novatos", "Pasta dos novatos"),
         ("link_aluno", "Link do aluno no Sistema Escola"),
     };
 

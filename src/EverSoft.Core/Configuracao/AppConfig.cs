@@ -32,8 +32,6 @@ public class AppConfig
         ["mat_ativas"] = Srv + @"Documentos\Excel\RelMatAtivas.xls",
         ["grade_presencial"] = Srv + @"Documentos\Excel\GradeHorariosAction.xls",
         ["bloqueio"] = Srv + @"Documentos\Excel\Bloqueio.xlsx",
-        ["boas_vindas_modelo"] = Srv + @"Documentos\BoasVindas.ppsm",
-        ["pasta_novatos"] = Srv + @"Novatos\",
         ["historico"] = Srv + @"Documentos\Historico\Historico.xlsx",
         ["observacoes"] = Srv + @"Documentos\Excel\Observacoes.xlsx",
         ["link_aluno"] = "https://sistemaescolaead.grupooportunidade.com.br/seonline/private/onbyte/MatriculasEdit.jsf?matriculasCodigo=",

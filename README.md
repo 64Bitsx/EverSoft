@@ -90,7 +90,7 @@ Pelo terminal (opcional): `dotnet test` dentro da pasta.
 - O padrão de `justificativas_json_dir` agora aponta para o servidor, e não para a pasta do seu usuário
   (se o seu `config.json` já tem esse caminho, ele continua valendo).
 - Ainda **não** portado: a cópia local de dados para abrir sem rede (vem com a interface),
-  boas-vindas em PowerPoint, importar a planilha .xlsm antiga, WhatsApp, remover faltas e
+  importar a planilha .xlsm antiga, WhatsApp, remover faltas e
   os botões que mudam o relógio do Windows (substituídos pela escolha da faixa: `MensagemFaltosos(faixa: "13:00 ÀS 15:00")`).
 
 ## Próximas etapas
@@ -119,3 +119,9 @@ Pelo terminal (opcional): `dotnet test` dentro da pasta.
 
 Principal diferença: o C# confere os tipos **antes** de rodar. O Visual Studio sublinha de vermelho
 um erro que no Python só apareceria quando aquela linha fosse executada.
+
+## Decisões
+
+- **Boas-vindas em PowerPoint:** removido (não é mais usado).
+- **Imagem do boletim (`Boletim.png`):** muda todo mês, então não vai dentro do programa. O app lê o arquivo
+  do caminho configurado (`boletim_imagem`) na hora de cada envio, sempre a versão mais nova.
