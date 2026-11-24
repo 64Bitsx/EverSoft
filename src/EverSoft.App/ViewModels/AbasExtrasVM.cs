@@ -29,7 +29,9 @@ public partial class JustificaVM : ObservableObject
 
     public JustificaVM(MainViewModel main) => _main = main;
 
-    public void Recarregar()
+    /// <param name="faixaDoRelogio">true = seleciona a faixa do horário atual do computador
+    /// (usado no botão "Preenche justificados").</param>
+    public void Recarregar(bool faixaDoRelogio = false)
     {
         var n = _main.Nucleo;
         Linhas.Clear();
@@ -44,12 +46,17 @@ public partial class JustificaVM : ObservableObject
             Faixas.Clear();
             foreach (var f in lista) Faixas.Add(f);
         }
-        if (Faixa is null || !Faixas.Contains(Faixa))
-            Faixa = atual != "" ? atual : Faixas.LastOrDefault(f => Inicio(f) <= agora.TimeOfDay) ?? Faixas.FirstOrDefault();
+        if (faixaDoRelogio || Faixa is null || !Faixas.Contains(Faixa))
+            Faixa = FaixaDoHorario(Faixas, atual, agora.TimeOfDay);
         AtualizarPrevia();
     }
 
     private static TimeSpan Inicio(string faixa) => TimeSpan.Parse(faixa[..5]);
+
+    /// <summary>A faixa em que o relógio está; fora de faixa, a última que já começou (ou a primeira do dia).</summary>
+    public static string? FaixaDoHorario(IList<string> faixas, string atual, TimeSpan hora) =>
+        atual != "" && faixas.Contains(atual) ? atual
+            : faixas.LastOrDefault(f => Inicio(f) <= hora) ?? faixas.FirstOrDefault();
 
     partial void OnFaixaChanged(string? value) => AtualizarPrevia();
 
@@ -108,7 +115,9 @@ public partial class BoletimVM : ObservableObject
     [ObservableProperty] private string _resumo = "";
     public BoletimVM(MainViewModel main) => _main = main;
 
-    public void Recarregar()
+    /// <param name="faixaDoRelogio">true = seleciona a faixa do horário atual do computador
+    /// (usado no botão "Preenche justificados").</param>
+    public void Recarregar(bool faixaDoRelogio = false)
     {
         var n = _main.Nucleo;
         var b = n.Cfg.Boletim;

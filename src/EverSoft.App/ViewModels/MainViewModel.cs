@@ -284,7 +284,7 @@ public partial class MainViewModel : ObservableObject
         {
             Ocupado = true;
             var novos = await Task.Run(() => Nucleo.TransferirParaJustifica(slot.Slot));
-            Justifica.Recarregar();
+            Justifica.Recarregar(faixaDoRelogio: true);   // já deixa marcada a faixa do horário do PC
             AbaSelecionada = Abas.First(a => a.Id == "__just");
             await Janelas.Mensagem(novos.Count > 0 ? $"{novos.Count} aluno(s) enviados para a aba Justifica." : "Nenhum aluno novo para a aba Justifica.");
         }

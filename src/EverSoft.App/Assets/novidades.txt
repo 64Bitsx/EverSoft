@@ -1,3 +1,6 @@
+## V2.3
+- Preenche justificados: a aba Justifica já abre com a faixa de horário do relógio do computador selecionada.
+
 ## V2.2
 - A linha laranja de quem está sem status continua laranja quando o aluno é selecionado.
 - A data de início do Cap 2 não some mais quando o status muda depois (OK, Atrasado...).

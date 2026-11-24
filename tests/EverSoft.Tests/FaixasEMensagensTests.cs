@@ -88,3 +88,19 @@ public class MensagensTests
         Assert.Equal("FALTOSOS SÁBADO 07:40 ÀS 09:30\n*Todos os alunos presentes!", texto);
     }
 }
+
+public class FaixaDoRelogioTests
+{
+    [Fact]
+    public void Preenche_justificados_escolhe_a_faixa_do_horario_do_PC()
+    {
+        var dia = new DateTime(2026, 11, 24, 14, 10, 0);     // terça, 14h10
+        var faixas = EverSoft.Core.Dominio.Faixas.FaixasDoDia(dia);
+        string atual = EverSoft.Core.Dominio.Faixas.FaixaHorarioJustifica(dia);
+        Assert.Equal("13:00 ÀS 15:00", EverSoft.App.ViewModels.JustificaVM.FaixaDoHorario(faixas, atual, dia.TimeOfDay));
+        // entre faixas / depois da última: fica a última que já começou
+        Assert.Equal("19:00 ÀS 21:00", EverSoft.App.ViewModels.JustificaVM.FaixaDoHorario(faixas, "", new TimeSpan(22, 0, 0)));
+        // antes da primeira: a primeira do dia
+        Assert.Equal("07:45 ÀS 09:40", EverSoft.App.ViewModels.JustificaVM.FaixaDoHorario(faixas, "", new TimeSpan(6, 0, 0)));
+    }
+}
