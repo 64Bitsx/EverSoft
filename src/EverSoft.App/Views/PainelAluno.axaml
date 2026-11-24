@@ -1,0 +1,34 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:EverSoft.App.ViewModels"
+             x:Class="EverSoft.App.Views.PainelAluno"
+             x:DataType="vm:PainelAlunoVM">
+  <Border Classes="cartao" Padding="16">
+    <StackPanel Spacing="10">
+      <Border Width="220" Height="220" CornerRadius="10" Background="#DBEAFE" ClipToBounds="True" HorizontalAlignment="Center">
+        <Grid>
+          <Image Source="{Binding Foto}" Stretch="UniformToFill"/>
+          <TextBlock Text="{Binding AvisoFoto}" Foreground="#64748B" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
+        </Grid>
+      </Border>
+      <TextBlock Text="{Binding Nome}" FontSize="17" FontWeight="Bold" Foreground="#1E293B" TextWrapping="Wrap"/>
+      <Border Background="{Binding FundoSituacao}" CornerRadius="6" Padding="10,3" HorizontalAlignment="Left" IsVisible="{Binding TemAluno}">
+        <TextBlock Text="{Binding Situacao}" Foreground="{Binding TextoSituacao}" FontWeight="Bold" FontSize="11"/>
+      </Border>
+      <Grid ColumnDefinitions="84,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" Margin="0,4,0,0">
+        <Grid.Styles>
+          <Style Selector="TextBlock.v"><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Foreground" Value="#1E293B"/>
+            <Setter Property="TextWrapping" Value="Wrap"/><Setter Property="Margin" Value="0,3"/><Setter Property="FontSize" Value="13"/></Style>
+          <Style Selector="TextBlock.rotulo"><Setter Property="Margin" Value="0,5,0,0"/></Style>
+        </Grid.Styles>
+        <TextBlock Classes="rotulo" Text="MATRÍCULA"/>      <TextBlock Classes="v" Grid.Column="1" Text="{Binding Matricula}"/>
+        <TextBlock Classes="rotulo" Grid.Row="1" Text="MATÉRIA"/>  <TextBlock Classes="v" Grid.Row="1" Grid.Column="1" Text="{Binding Materia}"/>
+        <TextBlock Classes="rotulo" Grid.Row="2" Text="ÚLTIMA"/>   <TextBlock Classes="v" Grid.Row="2" Grid.Column="1" Text="{Binding Ultima}"/>
+        <TextBlock Classes="rotulo" Grid.Row="3" Text="TEL. 1"/>   <SelectableTextBlock Classes="v" Grid.Row="3" Grid.Column="1" Text="{Binding Tel1}" FontWeight="SemiBold" Margin="0,3"/>
+        <TextBlock Classes="rotulo" Grid.Row="4" Text="TEL. 2"/>   <SelectableTextBlock Classes="v" Grid.Row="4" Grid.Column="1" Text="{Binding Tel2}" FontWeight="SemiBold" Margin="0,3"/>
+        <TextBlock Classes="rotulo" Grid.Row="5" Text="TEL. 3"/>   <SelectableTextBlock Classes="v" Grid.Row="5" Grid.Column="1" Text="{Binding Tel3}" FontWeight="SemiBold" Margin="0,3"/>
+        <TextBlock Classes="rotulo" Grid.Row="6" Text="INSTAGRAM"/><SelectableTextBlock Classes="v" Grid.Row="6" Grid.Column="1" Text="{Binding Insta}" FontWeight="SemiBold" Margin="0,3"/>
+      </Grid>
+    </StackPanel>
+  </Border>
+</UserControl>

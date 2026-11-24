@@ -1,0 +1,49 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:EverSoft.App.ViewModels"
+             x:Class="EverSoft.App.Views.JustificaView"
+             x:DataType="vm:JustificaVM">
+  <DockPanel>
+    <StackPanel DockPanel.Dock="Top" Margin="2,0,0,8">
+      <TextBlock Classes="titulo" Text="Justifica"/>
+      <TextBlock Classes="subtitulo" Text="Faltosos e justificativas do dia"/>
+    </StackPanel>
+
+    <!-- Lado direito: escolha da faixa, prévia e envio -->
+    <Border DockPanel.Dock="Right" Classes="cartao" Width="380" Margin="10,0,0,0">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Spacing="6">
+          <TextBlock Classes="rotulo" Text="FAIXA DE HORÁRIO"/>
+          <ComboBox ItemsSource="{Binding Faixas}" SelectedItem="{Binding Faixa}" HorizontalAlignment="Stretch"/>
+          <TextBlock Classes="subtitulo" TextWrapping="Wrap"
+                     Text="Já começa na faixa atual. Esqueceu de enviar uma faixa anterior? É só escolher aqui."/>
+          <TextBlock Text="{Binding Resumo}" FontWeight="SemiBold" Foreground="#1E293B" Margin="0,6,0,0"/>
+        </StackPanel>
+        <StackPanel DockPanel.Dock="Bottom" Spacing="6" Margin="0,10,0,0">
+          <Button Classes="azul" Content="Enviar justificados" Command="{Binding EnviarCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="12,10"/>
+          <Button Content="Só copiar a mensagem" Command="{Binding CopiarMensagemCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+        </StackPanel>
+        <TextBox Text="{Binding Previa}" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" Margin="0,8,0,0"
+                 FontFamily="Consolas,Menlo,monospace" FontSize="12" Background="#F8FAFC"/>
+      </DockPanel>
+    </Border>
+
+    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+      <Button Content="Adicionar linha" Command="{Binding AdicionarCommand}"/>
+      <Button Content="Editar linha" Command="{Binding EditarCommand}"/>
+      <Button Content="Remover linha" Command="{Binding RemoverCommand}"/>
+    </StackPanel>
+
+    <DataGrid ItemsSource="{Binding Linhas}" SelectedItem="{Binding Selecionada}" AutoGenerateColumns="False"
+              IsReadOnly="True" HeadersVisibility="Column" DoubleTapped="Grade_DoubleTapped" BorderBrush="#E2E8F0" BorderThickness="1">
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="NOME" Binding="{Binding Registro.Nome}" Width="2*"/>
+        <DataGridTextColumn Header="JUSTIFICATIVA" Binding="{Binding Registro.Justificativa}" Width="2.4*"/>
+        <DataGridTextColumn Header="DATA" Binding="{Binding Data}" Width="104"/>
+        <DataGridTextColumn Header="MATRÍCULA" Binding="{Binding Matricula}" Width="118"/>
+        <DataGridTextColumn Header="HORÁRIO" Binding="{Binding Registro.Horario}" Width="130"/>
+        <DataGridTextColumn Header="FREQUÊNCIA" Binding="{Binding Registro.Frequencia}" Width="124"/>
+      </DataGrid.Columns>
+    </DataGrid>
+  </DockPanel>
+</UserControl>

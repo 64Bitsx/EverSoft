@@ -1,0 +1,73 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:EverSoft.App.ViewModels"
+        xmlns:v="using:EverSoft.App.Views"
+        x:Class="EverSoft.App.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="{Binding Titulo}"
+        Width="1400" Height="860" MinWidth="1100" MinHeight="680"
+        WindowStartupLocation="CenterScreen" WindowState="Maximized">
+
+  <Window.KeyBindings>
+    <KeyBinding Gesture="F5" Command="{Binding SincroniaCommand}"/>
+  </Window.KeyBindings>
+
+  <DockPanel>
+    <!-- Menu -->
+    <Menu DockPanel.Dock="Top" Background="#0B1B33" Foreground="White">
+      <MenuItem Header="_Arquivo" Foreground="White">
+        <MenuItem Header="Executar Automação TEC" Command="{Binding AutomacaoTecCommand}" Foreground="#1E293B"/>
+        <MenuItem Header="Executar Sincronia" InputGesture="F5" Command="{Binding SincroniaCommand}" Foreground="#1E293B"/>
+        <Separator/>
+        <MenuItem Header="Configurações..." Command="{Binding ConfiguracoesCommand}" Foreground="#1E293B"/>
+        <MenuItem Header="Abrir pasta de dados do app" Command="{Binding AbrirPastaDadosCommand}" Foreground="#1E293B"/>
+        <Separator/>
+        <MenuItem Header="Sair" Click="Sair_Click" Foreground="#1E293B"/>
+      </MenuItem>
+      <MenuItem Header="A_juda" Foreground="White">
+        <MenuItem Header="Sobre" Command="{Binding SobreCommand}" Foreground="#1E293B"/>
+      </MenuItem>
+    </Menu>
+
+    <!-- Barra de status -->
+    <Border DockPanel.Dock="Bottom" Padding="14,4" Background="#E6EDF8">
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <Ellipse Width="8" Height="8" Fill="{Binding CorStatus}" VerticalAlignment="Center"/>
+        <TextBlock Text="{Binding StatusTexto}" FontSize="12" Foreground="#334155"/>
+        <ProgressBar IsIndeterminate="True" IsVisible="{Binding Ocupado}" Width="120" Height="4" VerticalAlignment="Center"/>
+      </StackPanel>
+    </Border>
+
+    <!-- Painel do aluno (direita) -->
+    <v:PainelAluno DockPanel.Dock="Right" DataContext="{Binding Painel}" IsVisible="{Binding $parent[Window].((vm:MainViewModel)DataContext).MostrarPainel}" Width="280" Margin="0,10,12,10"/>
+
+    <DockPanel Margin="12,8,10,8">
+      <!-- Barra de abas em "chips" -->
+      <ScrollViewer DockPanel.Dock="Top" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Margin="0,0,0,8">
+        <ListBox Classes="abas" ItemsSource="{Binding Abas}" SelectedItem="{Binding AbaSelecionada}">
+          <ListBox.ItemsPanel>
+            <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+          </ListBox.ItemsPanel>
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:AbaVM">
+              <Border Background="{Binding Cor}" CornerRadius="14" Padding="14,6">
+                <TextBlock Text="{Binding Titulo}" Foreground="{Binding CorTexto}" FontWeight="SemiBold" FontSize="13"/>
+              </Border>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </ScrollViewer>
+
+      <!-- Conteúdo da aba escolhida: cada tipo de ViewModel tem a sua tela -->
+      <ContentControl Content="{Binding AbaSelecionada.Conteudo}">
+        <ContentControl.DataTemplates>
+          <DataTemplate DataType="vm:SlotVM"><v:SlotView/></DataTemplate>
+          <DataTemplate DataType="vm:JustificaVM"><v:JustificaView/></DataTemplate>
+          <DataTemplate DataType="vm:AgendaVM"><v:AgendaView/></DataTemplate>
+          <DataTemplate DataType="vm:BoletimVM"><v:BoletimView/></DataTemplate>
+          <DataTemplate DataType="vm:MsgVM"><v:MsgView/></DataTemplate>
+        </ContentControl.DataTemplates>
+      </ContentControl>
+    </DockPanel>
+  </DockPanel>
+</Window>

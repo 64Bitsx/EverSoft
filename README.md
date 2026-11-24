@@ -1,0 +1,121 @@
+# EverSoft (C# / .NET 8)
+
+Nova versão do EverSoft, reescrita em C# a partir do `EverSoft.py`.
+
+| Projeto | O que é |
+|---|---|
+| `src/EverSoft.Core` | As regras e os dados (etapa 1) |
+| `src/EverSoft.App` | A janela do programa, feita com Avalonia (etapa 2) |
+| `tests/EverSoft.Tests` | Testes automáticos, inclusive abrindo a janela |
+
+## Etapa 2: a interface
+
+- Abas de horário em "chips" coloridos (presencial azul-escuro, EAD azul-claro), tabela dos 19 PCs com J, matrícula
+  editável (duplo clique), situação colorida e menu no botão direito.
+- Painel do aluno com foto, matéria, última presença, telefones e Instagram.
+- Formulários Status, J (justificativa), Coments, Bloqueio e Info, com as mesmas regras de antes.
+- Aba **Justifica** com a escolha da faixa de horário (substitui os botões que mudavam o relógio do Windows).
+  "Enviar justificados" copia a mensagem para colar no grupo, grava o JSON das justificativas e limpa a faixa.
+- Abas **Agenda**, **Boletim** e **MSG**.
+- Menu Arquivo: Automação TEC, Sincronia (F5), Configurações e pasta de dados.
+- Sincronia automática das planilhas em segundo plano.
+
+**Pasta de dados separada:** a versão nova usa `...\EverSoft\dados_app_v2`. Na primeira abertura ela copia o
+`config.json` e o `estado.json` da pasta `dados_app` do Python. Assim as duas versões podem rodar ao mesmo tempo
+sem uma apagar o que a outra gravou. Os JSONs das planilhas continuam compartilhados.
+
+**Ainda não tem (etapa 3):** envio pelo WhatsApp (lembretes, boletins, disparo) e remover faltas.
+
+## Rodar o programa
+
+No Visual Studio, clique com o botão direito em **EverSoft.App** > **Definir como Projeto de Inicialização** e aperte **F5**.
+
+Para gerar o executável único (um arquivo só, não precisa instalar .NET):
+
+```
+dotnet publish src/EverSoft.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o publicar
+```
+
+## Etapa 1: o núcleo
+
+Tudo o que o app **sabe fazer**, sem a parte visual ainda:
+
+| Pasta | O que tem | Equivale no EverSoft.py |
+|---|---|---|
+| `Util/` | Funções de texto, JSON e log | `norm`, `txt`, `proper`, `parse_data`, `tratar_contatos`... |
+| `Configuracao/` | `config.json` e `estado.json` | `Config`, `Estado` |
+| `Planilhas/` | Ler `.xlsx`, `.xls` (inclusive os que são HTML ou XML por dentro), gravar com backup, JSONs espelho | `ler_planilha`, `gravar_no_topo`, `_ler_json_fonte`... |
+| `Dados/` | Central de consultas (as antigas fórmulas PROCV) | `DataHub` |
+| `Dominio/` | Abas de horário, linha do aluno, faixas de horário, mensagens | `Slot`, `processar_grade`, `calcular_linha`, `faixa_*`, `mensagem_*` |
+| `Servicos/` | Um método por botão: preencher matrículas, status, bloqueio, coments, justifica, lembretes, boletins, Automação TEC, Sincronia | `Nucleo`, `gerar_jsons_*` |
+
+**Compatível com a versão Python:** lê o mesmo `config.json`, o mesmo `estado.json` e os mesmos
+JSONs espelho. Dá para usar as duas versões em paralelo durante a transição.
+
+**57 testes automáticos** conferem as regras, usando planilhas fictícias criadas na hora.
+Vários resultados esperados foram tirados rodando o próprio `EverSoft.py`.
+
+**Testado com as planilhas reais:** a Automação TEC, a Sincronia e a montagem das 9 abas de horário
+deram exatamente o mesmo resultado na versão Python e na C# (92 alunos, todas as colunas iguais).
+
+## Planilhas sempre em dia (Excel → JSON → app)
+
+As planilhas são editadas o tempo todo (por você, pelo app e por colegas). Por isso:
+
+1. **O app grava** (Status, Bloqueio, Coments, Notificação): grava no Excel, gera o JSON na hora e relê.
+2. **Alguém edita o Excel direto**: a cada 60 segundos (`auto_atualizar_segundos`) o app confere quais
+   planilhas ficaram mais novas que o JSON, converte só essas e relê. Se a planilha estiver sendo salva
+   naquele instante, o JSON anterior é mantido e ele tenta de novo na rodada seguinte.
+3. **Outro PC converteu**: o app percebe que o JSON mudou e relê.
+4. Os botões **Automação TEC** e **Sincronia** continuam existindo para forçar a conversão.
+
+Para voltar ao comportamento antigo (só converter pelos botões), use `"sincronia_automatica": false`
+no `config.json`. Quem faz isso é a classe `Servicos/MonitorPlanilhas.cs`.
+
+## Como abrir no Visual Studio
+
+1. Instale o **Visual Studio 2022 Community** (gratuito): https://visualstudio.microsoft.com/pt-br/vs/community/
+   Na instalação, marque a carga de trabalho **"Desenvolvimento para desktop com .NET"**.
+2. Descompacte a pasta e dê dois cliques em **`EverSoft.sln`**.
+3. Para rodar os testes: menu **Teste > Gerenciador de Testes** e clique em **Executar todos** (o botão ▶▶).
+   Todos devem ficar verdes.
+
+Pelo terminal (opcional): `dotnet test` dentro da pasta.
+
+## Diferenças em relação ao Python
+
+- Os caminhos de rede ficam só no `config.json`. O PC guarda apenas onde está a pasta de dados,
+  em `%APPDATA%\EverSoft\local.json`.
+- Planilhas são lidas mesmo quando alguém está com elas abertas no Excel.
+- O padrão de `justificativas_json_dir` agora aponta para o servidor, e não para a pasta do seu usuário
+  (se o seu `config.json` já tem esse caminho, ele continua valendo).
+- Ainda **não** portado: a cópia local de dados para abrir sem rede (vem com a interface),
+  boas-vindas em PowerPoint, importar a planilha .xlsm antiga, WhatsApp, remover faltas e
+  os botões que mudam o relógio do Windows (substituídos pela escolha da faixa: `MensagemFaltosos(faixa: "13:00 ÀS 15:00")`).
+
+## Próximas etapas
+
+3. WhatsApp Web com Playwright (controla o navegador pelos elementos, não pelo mouse)
+4. Remover faltas no Sistema Escola com Playwright
+5. Executável (`EverSoft.exe`) e instalador
+
+## Guia rápido: C# para quem sabe Python
+
+| Python | C# |
+|---|---|
+| `nome = "Ana"` | `string nome = "Ana";` ou `var nome = "Ana";` |
+| `idade: int = 15` | `int idade = 15;` |
+| `def soma(a, b): return a + b` | `int Soma(int a, int b) => a + b;` |
+| `if x: ... elif y: ... else: ...` | `if (x) { ... } else if (y) { ... } else { ... }` |
+| `for aluno in alunos:` | `foreach (var aluno in alunos) { ... }` |
+| `lista = []` / `lista.append(x)` | `var lista = new List<string>();` / `lista.Add(x);` |
+| `d = {}` / `d["k"] = 1` | `var d = new Dictionary<string, int>();` / `d["k"] = 1;` |
+| `None` | `null` (e `string?` quer dizer "pode ser null") |
+| `f"Olá {nome}"` | `$"Olá {nome}"` |
+| `[a.nome for a in alunos if a.ativo]` | `alunos.Where(a => a.Ativo).Select(a => a.Nome).ToList()` |
+| `try: ... except Exception as e:` | `try { ... } catch (Exception e) { ... }` |
+| `@dataclass` | `record` |
+| `# comentário` | `// comentário` e `/// <summary>` para documentar |
+
+Principal diferença: o C# confere os tipos **antes** de rodar. O Visual Studio sublinha de vermelho
+um erro que no Python só apareceria quando aquela linha fosse executada.

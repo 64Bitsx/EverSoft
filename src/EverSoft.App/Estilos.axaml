@@ -1,0 +1,105 @@
+<!-- Cores e estilos do EverSoft (equivale ao dicionário COR do Python). -->
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Styles.Resources>
+    <SolidColorBrush x:Key="Fundo" Color="#EEF2F8"/>
+    <SolidColorBrush x:Key="Cartao" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="Navy" Color="#0B1B33"/>
+    <SolidColorBrush x:Key="Primaria" Color="#2563EB"/>
+    <SolidColorBrush x:Key="Verde" Color="#16A34A"/>
+    <SolidColorBrush x:Key="Dourado" Color="#F59E0B"/>
+    <SolidColorBrush x:Key="Laranja" Color="#EA580C"/>
+    <SolidColorBrush x:Key="Vermelho" Color="#DC2626"/>
+    <SolidColorBrush x:Key="VermelhoClaro" Color="#FEE2E2"/>
+    <SolidColorBrush x:Key="Texto" Color="#1E293B"/>
+    <SolidColorBrush x:Key="TextoSuave" Color="#64748B"/>
+    <SolidColorBrush x:Key="Linha" Color="#E2E8F0"/>
+    <SolidColorBrush x:Key="AzulClaro" Color="#DBEAFE"/>
+    <!-- A ordenação das colunas está desligada: não precisa reservar espaço para a setinha -->
+    <x:Double x:Key="DataGridSortIconMinWidth">0</x:Double>
+  </Styles.Resources>
+
+  <Style Selector="Window">
+    <Setter Property="Background" Value="{StaticResource Fundo}"/>
+  </Style>
+
+  <!-- Cartão branco com borda suave -->
+  <Style Selector="Border.cartao">
+    <Setter Property="Background" Value="{StaticResource Cartao}"/>
+    <Setter Property="BorderBrush" Value="{StaticResource Linha}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="CornerRadius" Value="10"/>
+    <Setter Property="Padding" Value="14"/>
+  </Style>
+
+  <Style Selector="TextBlock.titulo">
+    <Setter Property="FontSize" Value="20"/>
+    <Setter Property="FontWeight" Value="Bold"/>
+    <Setter Property="Foreground" Value="{StaticResource Texto}"/>
+  </Style>
+  <Style Selector="TextBlock.subtitulo">
+    <Setter Property="FontSize" Value="12"/>
+    <Setter Property="Foreground" Value="{StaticResource TextoSuave}"/>
+  </Style>
+  <Style Selector="TextBlock.rotulo">
+    <Setter Property="FontSize" Value="10"/>
+    <Setter Property="FontWeight" Value="Bold"/>
+    <Setter Property="Foreground" Value="{StaticResource TextoSuave}"/>
+  </Style>
+
+  <!-- Botões coloridos arredondados -->
+  <Style Selector="Button">
+    <Setter Property="CornerRadius" Value="8"/>
+    <Setter Property="Padding" Value="12,6"/>
+    <Setter Property="FontWeight" Value="SemiBold"/>
+  </Style>
+  <Style Selector="Button.azul"><Setter Property="Background" Value="{StaticResource Primaria}"/><Setter Property="Foreground" Value="White"/></Style>
+  <Style Selector="Button.verde"><Setter Property="Background" Value="{StaticResource Verde}"/><Setter Property="Foreground" Value="White"/></Style>
+  <Style Selector="Button.dourado"><Setter Property="Background" Value="{StaticResource Dourado}"/><Setter Property="Foreground" Value="#1E293B"/></Style>
+  <Style Selector="Button.laranja"><Setter Property="Background" Value="{StaticResource Laranja}"/><Setter Property="Foreground" Value="White"/></Style>
+  <Style Selector="Button.vermelho"><Setter Property="Background" Value="{StaticResource Vermelho}"/><Setter Property="Foreground" Value="White"/></Style>
+  <Style Selector="Button.azul:pointerover /template/ ContentPresenter, Button.verde:pointerover /template/ ContentPresenter, Button.laranja:pointerover /template/ ContentPresenter, Button.vermelho:pointerover /template/ ContentPresenter">
+    <Setter Property="Opacity" Value="0.88"/>
+    <Setter Property="Foreground" Value="White"/>
+  </Style>
+
+  <!-- Abas em "chips" coloridos -->
+  <Style Selector="ListBox.abas">
+    <Setter Property="Background" Value="Transparent"/>
+  </Style>
+  <Style Selector="ListBox.abas ListBoxItem">
+    <Setter Property="Padding" Value="0"/>
+    <Setter Property="Margin" Value="0,0,6,0"/>
+  </Style>
+  <!-- Aba aberta em destaque; as outras ficam mais apagadas -->
+  <Style Selector="ListBox.abas ListBoxItem">
+    <Setter Property="Opacity" Value="0.55"/>
+  </Style>
+  <Style Selector="ListBox.abas ListBoxItem:selected">
+    <Setter Property="Opacity" Value="1"/>
+  </Style>
+  <Style Selector="ListBox.abas ListBoxItem:pointerover">
+    <Setter Property="Opacity" Value="0.85"/>
+  </Style>
+  <Style Selector="ListBox.abas ListBoxItem:selected /template/ ContentPresenter">
+    <Setter Property="Background" Value="Transparent"/>
+  </Style>
+  <Style Selector="ListBox.abas ListBoxItem:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="Transparent"/>
+  </Style>
+
+  <Style Selector="DataGrid">
+    <Setter Property="Background" Value="{StaticResource Cartao}"/>
+    <Setter Property="RowBackground" Value="White"/>
+    <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+    <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource Linha}"/>
+    <Setter Property="FontSize" Value="13"/>
+  </Style>
+  <Style Selector="DataGridColumnHeader">
+    <Setter Property="Background" Value="{StaticResource Navy}"/>
+    <Setter Property="Foreground" Value="White"/>
+    <Setter Property="FontSize" Value="10.5"/>
+    <Setter Property="FontWeight" Value="Bold"/>
+    <Setter Property="Padding" Value="6,0,0,0"/>
+  </Style>
+</Styles>

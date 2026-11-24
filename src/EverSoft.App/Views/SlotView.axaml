@@ -1,0 +1,75 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:EverSoft.App.ViewModels"
+             x:Class="EverSoft.App.Views.SlotView"
+             x:DataType="vm:SlotVM">
+  <DockPanel>
+    <!-- Título da aba + botões do aluno selecionado -->
+    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="2,0,0,8">
+      <Ellipse Width="12" Height="12" Fill="{Binding Cor}" VerticalAlignment="Center"/>
+      <TextBlock Classes="titulo" Text="{Binding Nome}" VerticalAlignment="Center"/>
+      <Border Background="{Binding Cor}" CornerRadius="4" Padding="8,2" VerticalAlignment="Center">
+        <TextBlock Text="{Binding Tipo}" FontSize="10" FontWeight="Bold" Foreground="White"/>
+      </Border>
+      <Button Classes="dourado" Content="Status" Command="{Binding StatusCommand}" Margin="16,0,0,0"/>
+      <Button Classes="azul" Content="J" Command="{Binding JustificarCommand}"/>
+      <Button Classes="verde" Content="Coments" Command="{Binding ComentsCommand}"/>
+      <Button Content="Bloqueio" Command="{Binding BloqueioCommand}"/>
+      <Button Content="Info" Command="{Binding InfoCommand}"/>
+      <Button Content="🌐 Sistema Escola" Command="{Binding AbrirSistemaCommand}"/>
+    </StackPanel>
+
+    <!-- Rodapé -->
+    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+      <Border Background="#FEE2E2" CornerRadius="6" Padding="12,6">
+        <TextBlock Text="{Binding Usados}" Foreground="#DC2626" FontWeight="Bold"/>
+      </Border>
+      <Button Classes="dourado" Content="Preparar lembretes" Command="{Binding LembretesCommand}"/>
+      <Button Classes="laranja" Content="Preenche justificados" Command="{Binding PreencheJustificadosCommand}"/>
+      <TextBlock Classes="subtitulo" VerticalAlignment="Center" Margin="12,0,0,0"
+                 Text="Clique duplo na matrícula para editar · botão direito abre o menu do aluno"/>
+    </StackPanel>
+
+    <DataGrid x:Name="Grade" ItemsSource="{Binding Linhas}" SelectedItem="{Binding Selecionada}"
+              AutoGenerateColumns="False" CanUserSortColumns="False" CanUserReorderColumns="False"
+              SelectionMode="Single" RowHeight="30" HorizontalScrollBarVisibility="Auto" HeadersVisibility="Column" BorderBrush="#E2E8F0" BorderThickness="1">
+      <DataGrid.ContextMenu>
+        <ContextMenu>
+          <MenuItem Header="Informações do aluno" Command="{Binding InfoCommand}"/>
+          <MenuItem Header="Status..." Command="{Binding StatusCommand}"/>
+          <MenuItem Header="Justificativa (J)..." Command="{Binding JustificarCommand}"/>
+          <MenuItem Header="Coments..." Command="{Binding ComentsCommand}"/>
+          <MenuItem Header="Bloqueio..." Command="{Binding BloqueioCommand}"/>
+          <Separator/>
+          <MenuItem Header="Marcar / desmarcar J" Command="{Binding AlternarJCommand}"/>
+          <MenuItem Header="Copiar nome" Command="{Binding CopiarNomeCommand}"/>
+          <MenuItem Header="Abrir no Sistema Escola" Command="{Binding AbrirSistemaCommand}"/>
+        </ContextMenu>
+      </DataGrid.ContextMenu>
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="PC" Binding="{Binding Pc}" IsReadOnly="True" Width="40"/>
+        <DataGridCheckBoxColumn Header="J" Binding="{Binding J}" Width="40"/>
+        <DataGridTextColumn Header="MATRÍC." Binding="{Binding Matricula}" Width="96" FontWeight="Bold"/>
+        <DataGridTextColumn Header="NOME" Binding="{Binding Nome}" IsReadOnly="True" Width="2*" MinWidth="230"/>
+        <DataGridTextColumn Header="MATÉRIA" Binding="{Binding Materia}" IsReadOnly="True" Width="1.2*" MinWidth="140"/>
+        <DataGridTextColumn Header="AULA" Binding="{Binding Aula}" IsReadOnly="True" Width="74"/>
+        <DataGridTextColumn Header="PRÁT." Binding="{Binding Pratica}" IsReadOnly="True" Width="62"/>
+        <DataGridTextColumn Header="APOST." Binding="{Binding Apostila}" IsReadOnly="True" Width="68"/>
+        <DataGridTextColumn Header="R" Binding="{Binding R}" IsReadOnly="True" Width="34"/>
+        <DataGridTextColumn Header="ÚLTIMA" Binding="{Binding Ultima}" IsReadOnly="True" Width="96"/>
+        <DataGridTextColumn Header="A PAGAR" Binding="{Binding APagar}" IsReadOnly="True" Width="92"/>
+        <DataGridTemplateColumn Header="SIT" Width="96" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:LinhaVM">
+              <Border Background="{Binding FundoSit}" CornerRadius="4" Margin="4,3" Padding="6,0">
+                <TextBlock Text="{Binding Sit}" Foreground="{Binding TextoSit}" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+              </Border>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+        <DataGridTextColumn Header="INÍCIO" Binding="{Binding Inicio}" IsReadOnly="True" Width="82"/>
+        <DataGridTextColumn Header="COM." Binding="{Binding Coment}" IsReadOnly="True" Width="58"/>
+      </DataGrid.Columns>
+    </DataGrid>
+  </DockPanel>
+</UserControl>

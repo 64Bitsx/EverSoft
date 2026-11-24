@@ -1,0 +1,29 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:EverSoft.App.ViewModels"
+             xmlns:c="using:EverSoft.Core.Configuracao"
+             x:Class="EverSoft.App.Views.AgendaView"
+             x:DataType="vm:AgendaVM">
+  <DockPanel>
+    <StackPanel DockPanel.Dock="Top" Margin="2,0,0,8">
+      <TextBlock Classes="titulo" Text="Agenda"/>
+      <TextBlock Classes="subtitulo" Text="Contatos dos lembretes de aula (o envio pelo WhatsApp chega na etapa 3)"/>
+    </StackPanel>
+    <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+      <TextBlock DockPanel.Dock="Right" Classes="subtitulo" Text="{Binding Resumo}" VerticalAlignment="Center"/>
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <Button Content="Limpar agenda" Command="{Binding LimparCommand}"/>
+      </StackPanel>
+    </DockPanel>
+    <DataGrid ItemsSource="{Binding Itens}" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column" BorderBrush="#E2E8F0" BorderThickness="1">
+      <DataGrid.Columns>
+        <DataGridTextColumn x:DataType="c:ItemAgenda" Header="NOME" Binding="{Binding Nome}" Width="1.5*"/>
+        <DataGridTextColumn x:DataType="c:ItemAgenda" Header="NÚMERO" Binding="{Binding Numero}" Width="136"/>
+        <DataGridTextColumn x:DataType="c:ItemAgenda" Header="MENSAGEM" Binding="{Binding Mensagem}" Width="3*"/>
+        <DataGridTextColumn x:DataType="c:ItemAgenda" Header="APOSTILA" Binding="{Binding Apostila}" Width="1*"/>
+        <DataGridTextColumn x:DataType="c:ItemAgenda" Header="AULA" Binding="{Binding Aula}" Width="80"/>
+        <DataGridTextColumn x:DataType="c:ItemAgenda" Header="NOVATOS" Binding="{Binding Novatos}" Width="80"/>
+      </DataGrid.Columns>
+    </DataGrid>
+  </DockPanel>
+</UserControl>

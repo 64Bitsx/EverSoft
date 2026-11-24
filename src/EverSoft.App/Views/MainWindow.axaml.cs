@@ -1,0 +1,285 @@
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Interactivity;
+using Avalonia.Layout;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Threading;
+using EverSoft.App.ViewModels;
+using EverSoft.Core.Configuracao;
+using EverSoft.Core.Servicos;
+using EverSoft.Core.Util;
+
+namespace EverSoft.App.Views;
+
+/// <summary>
+/// Janela principal. Aqui ficam só as coisas "de tela" (abrir diálogos, copiar texto);
+/// as regras ficam no MainViewModel e no EverSoft.Core.
+/// </summary>
+public partial class MainWindow : Window, IJanelas
+{
+    private readonly MainViewModel _vm;
+
+    public MainWindow() : this(null) { }
+
+    public MainWindow(Nucleo? nucleo)
+    {
+        InitializeComponent();
+        _vm = new MainViewModel(nucleo ?? new Nucleo(AppConfig.Carregar())) { Janelas = this };
+        DataContext = _vm;
+        Opened += async (_, _) => await _vm.IniciarAsync();
+        Closing += (_, _) => { _vm.Encerrar(); _vm.Nucleo.Salvar(); };
+    }
+
+    public MainViewModel ViewModel => _vm;
+
+    private void Sair_Click(object? sender, RoutedEventArgs e) => Close();
+
+    // ------------------------------------------------------------------ IJanelas
+    public Task Mensagem(string texto) => Dialogo.Mensagem(this, texto);
+    public Task<bool> Confirmar(string texto) => Dialogo.Confirmar(this, texto);
+
+    public async Task CopiarTexto(string texto)
+    {
+        if (Clipboard is not null) await Clipboard.SetTextAsync(texto);
+    }
+
+    public async Task<bool> StatusAluno(string nome, Func<string, bool, bool, bool, bool[], bool, Task<bool>> gravar)
+    {
+        var d = new Dialogo("Status do aluno");
+        d.Titulo(nome);
+        var atrasado = d.Check("Aluno ATRASADO");
+        var naoPratica = d.Check("    NÃO PRATICA");
+        naoPratica.IsVisible = false;
+        var ok = d.Check("Aluno OK");
+        var adiantado = d.Check("Aluno ADIANTADO");
+        var linhaCaps = d.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 14, Margin = new Thickness(0, 6, 0, 0) });
+        var caps = Enumerable.Range(1, 4).Select(i => new CheckBox { Content = $"Cap {i}" }).ToArray();
+        foreach (var c in caps) linhaCaps.Children.Add(c);
+
+        // Mesmas regras do formulário antigo: OK, ADIANTADO e ATRASADO não combinam entre si.
+        void Exclusivo(CheckBox marcado, params CheckBox[] outros)
+        {
+            if (marcado.IsChecked == true) foreach (var o in outros) o.IsChecked = false;
+            naoPratica.IsVisible = atrasado.IsChecked == true;
+            if (!naoPratica.IsVisible) naoPratica.IsChecked = false;
+        }
+        atrasado.IsCheckedChanged += (_, _) => Exclusivo(atrasado, ok, adiantado);
+        ok.IsCheckedChanged += (_, _) => Exclusivo(ok, atrasado, adiantado);
+        adiantado.IsCheckedChanged += (_, _) => Exclusivo(adiantado, ok, atrasado);
+
+        d.Botao("Cancelar", () => d.Fechar(false)).IsCancel = true;
+        d.Botao("Enviar", async () =>
+        {
+            if (await gravar(nome, atrasado.IsChecked == true, ok.IsChecked == true, adiantado.IsChecked == true,
+                             caps.Select(c => c.IsChecked == true).ToArray(), naoPratica.IsChecked == true))
+                d.Fechar(true);
+        }, "dourado").IsDefault = true;
+        await d.ShowDialog(this);
+        return d.Confirmado;
+    }
+
+    public async Task<bool> Coments(string nome, (string, string, string) atuais, Func<string, string, string, Task<bool>> gravar)
+    {
+        var d = new Dialogo("Comentários do aluno", 560);
+        d.Titulo(nome);
+        d.Rotulo("Comentário"); var c = d.Campo(atuais.Item1, 5);
+        d.Rotulo("Conquistas"); var con = d.Campo(atuais.Item2, 3);
+        d.Rotulo("Pontos"); var p = d.Campo(atuais.Item3, 2);
+        d.Botao("Cancelar", () => d.Fechar(false)).IsCancel = true;
+        d.Botao("Enviar", async () =>
+        {
+            if (await gravar((c.Text ?? "").Trim(), (con.Text ?? "").Trim(), (p.Text ?? "").Trim())) d.Fechar(true);
+        }, "verde");
+        await d.ShowDialog(this);
+        return d.Confirmado;
+    }
+
+    public async Task<bool> Bloqueio(string nome, IReadOnlyList<string> rotulos, (string Pratica, string Apostila) atuais, Func<bool[], Task<bool>> gravar)
+    {
+        var d = new Dialogo("Bloqueio");
+        d.Titulo(nome);
+        var marcas = rotulos.Take(4).Select((r, i) => d.Check(r, i == 0 ? atuais.Pratica != "" : i == 1 && atuais.Apostila != "")).ToArray();
+        d.Botao("Cancelar", () => d.Fechar(false)).IsCancel = true;
+        d.Botao("Enviar", async () =>
+        {
+            if (await gravar(marcas.Select(m => m.IsChecked == true).ToArray())) d.Fechar(true);
+        }, "azul");
+        await d.ShowDialog(this);
+        return d.Confirmado;
+    }
+
+    public async Task<(string Texto, bool Marcou)?> Justificar(string nome, string horario, string? jaRegistrada, bool temJ,
+                                                               Func<Task> desmarcarJ, Func<Task> removerNotificacao)
+    {
+        var d = new Dialogo("Justificativa de falta", 520);
+        d.Titulo(nome);
+        d.Texto($"Horário: {horario}", "#64748B");
+        if (jaRegistrada is not null) d.Texto($"Já registrada: {jaRegistrada}", "#EA580C");
+        d.Rotulo("Justificativa");
+        var t = d.Campo(maiusculas: true);
+        bool? marcou = null;
+        var extras = d.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Margin = new Thickness(0, 10, 0, 0) });
+        if (temJ)
+        {
+            var b = new Button { Content = "Desmarcar J" };
+            b.Click += async (_, _) => { await desmarcarJ(); d.Fechar(false); };
+            extras.Children.Add(b);
+        }
+        var n = new Button { Content = "Remover notificação de reposição" };
+        n.Click += async (_, _) => await removerNotificacao();
+        extras.Children.Add(n);
+
+        async Task Salvar(bool m)
+        {
+            if (string.IsNullOrWhiteSpace(t.Text)) { await Mensagem("Digite a justificativa."); return; }
+            marcou = m;
+            d.Fechar(true);
+        }
+        d.Botao("Não marcou reposição", () => _ = Salvar(false), "laranja");
+        d.Botao("Marcou reposição", () => _ = Salvar(true), "verde");
+        d.Opened += (_, _) => t.Focus();
+        await d.ShowDialog(this);
+        return d.Confirmado && marcou is not null ? (t.Text!.Trim(), marcou.Value) : null;
+    }
+
+    public async Task<RegistroJustifica?> LinhaJustifica(RegistroJustifica? atual)
+    {
+        var d = new Dialogo("Linha da Justifica");
+        var data = Texto.ParseData(atual?.Data);
+        d.Rotulo("Nome"); var nome = d.Campo(atual?.Nome ?? "");
+        d.Rotulo("Justificativa"); var just = d.Campo(atual?.Justificativa ?? "", maiusculas: true);
+        d.Rotulo("Data (dd/mm/aaaa)"); var dt = d.Campo(data?.ToString("dd/MM/yyyy") ?? "");
+        d.Rotulo("Horário (ex.: 13h00 - 15h00)"); var hor = d.Campo(atual?.Horario ?? "");
+        d.Rotulo("Frequência"); var freq = d.Campo(atual?.Frequencia ?? "");
+        RegistroJustifica? resultado = null;
+        d.Botao("Cancelar", () => d.Fechar(false)).IsCancel = true;
+        d.Botao("Salvar", async () =>
+        {
+            if (string.IsNullOrWhiteSpace(nome.Text)) { await Mensagem("Informe o nome."); return; }
+            var dd = string.IsNullOrWhiteSpace(dt.Text) ? null : Texto.ParseData(dt.Text);
+            if (!string.IsNullOrWhiteSpace(dt.Text) && dd is null) { await Mensagem("Data inválida. Use dd/mm/aaaa."); return; }
+            resultado = new RegistroJustifica
+            {
+                Nome = nome.Text!.Trim(), Justificativa = (just.Text ?? "").Trim(), Data = dd?.ToString("yyyy-MM-dd") ?? "",
+                Horario = (hor.Text ?? "").Trim(), Frequencia = (freq.Text ?? "").Trim(),
+            };
+            d.Fechar(true);
+        }, "verde");
+        await d.ShowDialog(this);
+        return resultado;
+    }
+
+    public async Task Info(Nucleo.InfoAluno info, string? foto)
+    {
+        var d = new Dialogo("Informações do aluno", 420);
+        if (foto is not null)
+        {
+            try
+            {
+                using var fs = File.OpenRead(foto);
+                d.Add(new Image { Source = Bitmap.DecodeToWidth(fs, 280), MaxHeight = 300, Margin = new Thickness(0, 0, 0, 8) });
+            }
+            catch { d.Texto("(sem foto)", "#64748B"); }
+        }
+        else d.Texto("(sem foto)", "#64748B");
+        d.Titulo(info.Nome);
+        foreach (var (rot, val) in new[] { ("Telefone 1", info.Num1), ("Telefone 2", info.Num2), ("Telefone 3", info.Num3), ("Instagram", info.Insta),
+                                          ("Comentário", info.Comentario), ("Conquistas", info.Conquistas), ("Pontos", info.Pontos) })
+        {
+            d.Rotulo(rot);
+            d.Add(new SelectableTextBlock { Text = val == "" ? "—" : val, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap });
+        }
+        d.Botao("Fechar", () => d.Fechar(true), "azul").IsDefault = true;
+        await d.ShowDialog(this);
+    }
+
+    public async Task<bool> Configuracoes(AppConfig cfg)
+    {
+        var d = new Dialogo("Configurações", 760);
+        d.Titulo("Arquivos e pastas");
+        var campos = new Dictionary<string, TextBox>();
+        foreach (var (chave, rotulo) in RotulosCaminhos)
+        {
+            d.Rotulo(rotulo);
+            campos[chave] = d.Campo(cfg.P(chave));
+        }
+        d.Titulo("Geral");
+        d.Rotulo("Pasta de dados do aplicativo (config, estado e backups)");
+        var pasta = d.Campo(cfg.PastaDados);
+        var auto = d.Check("Converter e reler as planilhas sozinho quando elas mudarem", cfg.SincroniaAutomatica);
+        d.Rotulo("Verificar mudanças a cada (segundos)");
+        var seg = d.Campo(cfg.AutoAtualizarSegundos.ToString());
+        var backup = d.Check("Fazer backup antes de gravar nas planilhas", cfg.BackupAntesDeGravar);
+        d.Rotulo("Grupo do WhatsApp para os justificados");
+        var grupo = d.Campo(cfg.Whatsapp.GrupoJustifica);
+        d.Rotulo("Modo do lembrete (audio ou texto)");
+        var modo = d.Campo(cfg.Lembrete.Modo);
+
+        d.Botao("Cancelar", () => d.Fechar(false)).IsCancel = true;
+        d.Botao("Salvar", async () =>
+        {
+            if (!int.TryParse(seg.Text, out int s) || s < 0) { await Mensagem("Informe um número de segundos válido."); return; }
+            foreach (var (k, t) in campos) cfg.Caminhos[k] = (t.Text ?? "").Trim();
+            cfg.DadosAppDir = (pasta.Text ?? "").Trim();
+            cfg.SincroniaAutomatica = auto.IsChecked == true;
+            cfg.AutoAtualizarSegundos = s;
+            cfg.BackupAntesDeGravar = backup.IsChecked == true;
+            cfg.Whatsapp.GrupoJustifica = (grupo.Text ?? "").Trim();
+            cfg.Lembrete.Modo = (modo.Text ?? "").Trim() == "texto" ? "texto" : "audio";
+            d.Fechar(true);
+        }, "verde");
+        await d.ShowDialog(this);
+        return d.Confirmado;
+    }
+
+    private static readonly (string, string)[] RotulosCaminhos =
+    {
+        ("tec_json_dir", "Pasta dos JSONs (Automação TEC e Sincronia)"),
+        ("acompanhar_alunos", "Acompanhar Alunos.xlsx"),
+        ("dados_alunos", "Dados dos Alunos.xlsm"),
+        ("mat_ativas", "RelMatAtivas.xls"),
+        ("grade_presencial", "Grade de horários presencial"),
+        ("grade_ead", "Grade de horários EAD"),
+        ("bloqueio", "Bloqueio.xlsx"),
+        ("historico", "Historico.xlsx"),
+        ("observacoes", "Observacoes.xlsx"),
+        ("coments", "Coments.xlsx"),
+        ("base_prepara", "Base Prepara.xls"),
+        ("boletim_xlsm", "Boletim.xlsm"),
+        ("boletim_imagem", "Imagem do boletim"),
+        ("fotos_alunos", "Pasta das fotos dos alunos"),
+        ("fotos_bmp", "Pasta das fotos BMP"),
+        ("audios_lembretes", "Pasta dos áudios de lembrete"),
+        ("justificativas_json_dir", "Pasta dos JSONs de justificativas"),
+        ("boas_vindas_modelo", "Modelo de boas-vindas (.ppsm)"),
+        ("pasta_novatos", "Pasta dos novatos"),
+        ("link_aluno", "Link do aluno no Sistema Escola"),
+    };
+
+    /// <summary>Janela com o andamento da Automação TEC / Sincronia.</summary>
+    public async Task Tarefa(string titulo, Func<Action<string>, Task> trabalho)
+    {
+        var log = new TextBox
+        {
+            IsReadOnly = true, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, Height = 360,
+            FontFamily = new FontFamily("Consolas,Menlo,monospace"), FontSize = 12, Background = Brush.Parse("#0B1B33"), Foreground = Brushes.White,
+        };
+        var d = new Dialogo(titulo, 640);
+        d.Add(log);
+        var fechar = d.Botao("Fechar", () => d.Fechar(true), "azul");
+        fechar.IsEnabled = false;
+        void Escrever(string m) => Dispatcher.UIThread.Post(() =>
+        {
+            log.Text += m + Environment.NewLine;
+            log.CaretIndex = log.Text.Length;
+        });
+        d.Opened += async (_, _) =>
+        {
+            try { await trabalho(Escrever); }
+            catch (Exception e) { Log.Erro(e.ToString()); Escrever("ERRO: " + e.Message); }
+            finally { fechar.IsEnabled = true; }
+        };
+        await d.ShowDialog(this);
+    }
+}

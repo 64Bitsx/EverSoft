@@ -1,0 +1,31 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:EverSoft.App.ViewModels"
+             x:Class="EverSoft.App.Views.BoletimView"
+             x:DataType="vm:BoletimVM">
+  <DockPanel>
+    <StackPanel DockPanel.Dock="Top" Margin="2,0,0,8">
+      <TextBlock Classes="titulo" Text="Boletim"/>
+      <TextBlock Classes="subtitulo" Text="Aproveitamento do mês (primeira guia do Boletim.xlsm) e mensagens"/>
+    </StackPanel>
+    <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+      <TextBlock DockPanel.Dock="Right" Classes="subtitulo" Text="{Binding Resumo}" VerticalAlignment="Center"/>
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <Button Classes="azul" Content="Puxar boletins do dia" Command="{Binding PuxarBoletinsCommand}"/>
+        <TextBlock Text="Mês:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="12,0,0,0"/>
+        <TextBox Text="{Binding MesAtual}" Width="120"/>
+        <TextBlock Text="Próximo mês:" VerticalAlignment="Center" FontWeight="SemiBold"/>
+        <TextBox Text="{Binding ProximoMes}" Width="120"/>
+        <Button Content="Aplicar" Command="{Binding AplicarCommand}"/>
+      </StackPanel>
+    </DockPanel>
+    <DataGrid ItemsSource="{Binding Itens}" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column" BorderBrush="#E2E8F0" BorderThickness="1">
+      <DataGrid.Columns>
+        <DataGridTextColumn x:DataType="vm:LinhaBoletim" Header="NOME" Binding="{Binding Nome}" Width="1.5*"/>
+        <DataGridTextColumn x:DataType="vm:LinhaBoletim" Header="NÚMERO" Binding="{Binding Numero}" Width="136"/>
+        <DataGridTextColumn x:DataType="vm:LinhaBoletim" Header="APROVEITAMENTO" Binding="{Binding Aproveitamento}" Width="140"/>
+        <DataGridTextColumn x:DataType="vm:LinhaBoletim" Header="MENSAGEM" Binding="{Binding Mensagem}" Width="4*"/>
+      </DataGrid.Columns>
+    </DataGrid>
+  </DockPanel>
+</UserControl>
