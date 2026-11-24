@@ -23,6 +23,12 @@ public static class Sincronizacao
         new(cfg.P("grade_ead"), new[] { cfg.Grade.Aba }, true),
     };
 
+    /// <summary>
+    /// Fontes que já foram convertidas uma única vez e não são mais reconvertidas
+    /// (a Base Prepara): o app só lê o JSON delas.
+    /// </summary>
+    public static readonly HashSet<string> SoConvertidasUmaVez = new() { "prepara" };
+
     /// <summary>As demais planilhas (Sincronia), incluindo o Boletim.</summary>
     public static List<Entrada> EntradasSincronia(AppConfig cfg)
     {
@@ -30,6 +36,7 @@ public static class Sincronizacao
         foreach (var f in DataHub.Fontes)
         {
             string c = cfg.P(f.ChaveCaminho);
+            if (SoConvertidasUmaVez.Contains(f.Chave)) continue;
             if (c == "" || DataHub.ArquivosAutomacaoTec.Contains(Path.GetFileName(c.Replace('\\', '/')))) continue;
             if (!porCaminho.TryGetValue(c, out var l)) porCaminho[c] = l = new();
             l.AddRange(f.Abas);
@@ -114,12 +121,14 @@ public static class Sincronizacao
                 continue;
             }
 
-            // As abas pedidas e, se nenhuma existir, a primeira aba do arquivo.
+            // As abas pedidas e a primeira aba do arquivo. Algumas abas pedidas são só
+            // alternativas de nome (ex.: "Sheet" ou "Base Prepara", mês atual ou próximo mês),
+            // então a falta de uma delas é normal e não é erro.
             var escolhidas = new List<Planilha>();
             foreach (var aba in abasPedidas.Append(null))
             {
                 var p = aba is null ? todas[0] : todas.FirstOrDefault(t => string.Equals(t.Nome, aba, StringComparison.OrdinalIgnoreCase));
-                if (p is null) { log?.Invoke($"  Aba {aba} não existe."); continue; }
+                if (p is null) continue;
                 if (escolhidas.Contains(p)) continue;
                 escolhidas.Add(p);
                 log?.Invoke($"  Aba {p.Nome}: {p.NLinhas} linha(s)");

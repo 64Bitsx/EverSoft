@@ -74,7 +74,7 @@ public class MonitorTests : IDisposable
             new object?[] { "a", "b", "Nome", null, null, null, null, "Início" },
             new object?[] { null, null, "Ana Lima", null, null, null, null, "02/2026" },
         });
-        Sincronizacao.GerarJsonsSincronizacao(_c.Cfg);
+        Sincronizacao.GerarJsonCompleto(_c.Cfg, _c.Cfg.P("base_prepara"));   // a conversão única
         File.Delete(_c.Cfg.P("base_prepara"));
 
         var n = _c.NovoNucleo(new DateTime(2026, 11, 23, 13, 30, 0));
@@ -82,5 +82,15 @@ public class MonitorTests : IDisposable
         monitor.VerificarAgora();
         Assert.Equal("02/2026", n.Linha("101").Inicio);
         Assert.True(Sincronizacao.GerarJsonsSincronizacao(_c.Cfg) > 0);   // as outras seguem sincronizando
+    }
+
+    [Fact]
+    public void Sincronia_nao_reconverte_a_Base_Prepara()
+    {
+        var log = new List<string>();
+        Sincronizacao.GerarJsonsSincronizacao(_c.Cfg, log.Add);
+        Assert.DoesNotContain(log, l => l.Contains("Base Prepara"));
+        Assert.DoesNotContain(Sincronizacao.EntradasSincronia(_c.Cfg), e => e.Caminho == _c.Cfg.P("base_prepara"));
+        Assert.DoesNotContain(log, l => EverSoft.App.Views.MainWindow.EhProblema(l));
     }
 }
