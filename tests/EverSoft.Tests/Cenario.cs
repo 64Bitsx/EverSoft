@@ -113,6 +113,7 @@ public sealed class Cenario : IDisposable
 
         Sincronizacao.GerarJsonsTec(Cfg);
         Sincronizacao.GerarJsonsSincronizacao(Cfg);
+        Sincronizacao.GerarJsonCompleto(Cfg, Cfg.P("base_prepara"));   // a Base Prepara foi convertida uma única vez
     }
 
     public Nucleo NovoNucleo(DateTime agora)

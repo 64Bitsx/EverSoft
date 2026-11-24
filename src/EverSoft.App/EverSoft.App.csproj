@@ -11,6 +11,7 @@
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <Version>2.0.0</Version>
     <Product>EverSoft</Product>
+    <PlaywrightPlatform Condition="'$(RuntimeIdentifier)' == 'win-x64'">win-x64</PlaywrightPlatform>
     <ApplicationIcon>Assets\eversoft-icon.ico</ApplicationIcon>
   </PropertyGroup>
 
@@ -30,5 +31,17 @@
   <ItemGroup>
     <ProjectReference Include="..\EverSoft.Core\EverSoft.Core.csproj" />
   </ItemGroup>
+
+  <!-- O Playwright (WhatsApp Web) precisa do node.exe como arquivo de verdade ao lado do EverSoft.exe,
+       então a pasta .playwright fica fora do .exe de arquivo único. -->
+  <Target Name="PlaywrightForaDoExe" AfterTargets="ComputeResolvedFilesToPublishList">
+    <ItemGroup>
+      <_PwOutroSO Include="@(ResolvedFileToPublish)" Condition="$([System.String]::Copy('%(ResolvedFileToPublish.RelativePath)').Replace('\','/').StartsWith('.playwright/node/')) AND !$([System.String]::Copy('%(ResolvedFileToPublish.RelativePath)').Replace('\','/').StartsWith('.playwright/node/win32_x64/')) AND '%(Filename)' != 'LICENSE'" />
+      <ResolvedFileToPublish Remove="@(_PwOutroSO)" />
+      <ResolvedFileToPublish Condition="$([System.String]::Copy('%(ResolvedFileToPublish.RelativePath)').Replace('\','/').StartsWith('.playwright/'))">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
 
 </Project>

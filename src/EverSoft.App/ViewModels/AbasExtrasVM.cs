@@ -84,6 +84,8 @@ public partial class AgendaVM : ObservableObject
         Resumo = $"{Itens.Count} contato(s) · hora dos lembretes: {(hora == "" ? "-" : hora)}";
     }
 
+    [RelayCommand] private Task Reenviar() => _main.ReenviarAgenda();
+
     [RelayCommand]
     private void Limpar()
     {

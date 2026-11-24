@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using EverSoft.Core.Automacao;
 using EverSoft.Core.Configuracao;
 using EverSoft.Core.Planilhas;
 using EverSoft.Core.Servicos;
@@ -23,6 +24,8 @@ public interface IJanelas
     Task Info(Nucleo.InfoAluno info, string? foto);
     Task<bool> Configuracoes(AppConfig cfg);
     Task Tarefa(string titulo, Func<Action<string>, Task> trabalho);
+    /// <summary>Janelinha de progresso de um envio pelo WhatsApp, com botão Parar.</summary>
+    Task<ResultadoEnvio?> Envio(string titulo, Func<Action<string>, Action<int, int>, CancellationToken, Task<ResultadoEnvio>> trabalho);
 }
 
 /// <summary>Uma aba da barra de cima (horários + Justifica, Agenda, Boletim, MSG).</summary>
@@ -92,7 +95,11 @@ public partial class MainViewModel : ObservableObject
         if (Nucleo.Cfg.AutoAtualizarSegundos > 0) _monitor.Iniciar();
     }
 
-    public void Encerrar() => _monitor?.Dispose();
+    public void Encerrar()
+    {
+        _monitor?.Dispose();
+        if (_whats is not null) _ = _whats.DisposeAsync().AsTask();
+    }
 
     private Dictionary<string, DateTime> DatasDasGrades()
     {
@@ -283,16 +290,76 @@ public partial class MainViewModel : ObservableObject
         finally { Ocupado = false; }
     }
 
-    public async Task PrepararLembretes(SlotVM slot)
+    // ------------------------------------------------------------------ WhatsApp
+    private IWhatsApp? _whats;
+    private bool _enviando;
+    /// <summary>Troca o WhatsApp real por um falso (testes e capturas de tela).</summary>
+    public Func<IWhatsApp> CriarWhatsApp { get; set; } = () => new WhatsAppWeb();
+    private IWhatsApp WhatsApp => _whats ??= CriarWhatsApp();
+
+    /// <summary>
+    /// Botão "Enviar lembretes": alimenta a Agenda (sem sair da aba atual) e já começa
+    /// o envio pelo WhatsApp Web (áudio da faixa + "Aluno: Nome", ou texto).
+    /// </summary>
+    public async Task EnviarLembretes(SlotVM slot)
     {
+        if (_enviando) { await Janelas.Mensagem("Já há um envio pelo WhatsApp em andamento."); return; }
+        string modo = Nucleo.Cfg.Lembrete.Modo;
+        string? pasta = null;
+        if (modo != "texto")
+        {
+            pasta = Nucleo.PastaAudioAtual();
+            if (pasta is null)
+            {
+                await Janelas.Mensagem($"Nenhuma faixa de horário de lembrete agora ({DateTime.Now:HH:mm}). Nada foi enviado.");
+                return;
+            }
+            if (EnvioLembretes.AudiosDaPasta(pasta).Count == 0)
+            {
+                await Janelas.Mensagem($"Não há áudio .ogg na pasta da faixa atual:\n{pasta}");
+                return;
+            }
+        }
+        List<ItemAgenda> agenda;
+        try { agenda = Nucleo.PrepararLembretes(slot.Slot); }
+        catch (Exception e) { Log.Erro(e.ToString()); await Janelas.Mensagem(e.Message); return; }
+        Agenda.Recarregar();
+        if (agenda.Count == 0) { await Janelas.Mensagem("Nenhum aluno sem J com telefone válido nesta aba."); return; }
+        await EnviarAgenda(agenda, modo, pasta);
+    }
+
+    /// <summary>Reenvia a Agenda que já está montada (botão na aba Agenda).</summary>
+    public async Task ReenviarAgenda()
+    {
+        if (_enviando) { await Janelas.Mensagem("Já há um envio pelo WhatsApp em andamento."); return; }
+        var agenda = Nucleo.Estado.Agenda.ToList();
+        if (agenda.Count == 0) { await Janelas.Mensagem("A Agenda está vazia. Use \"Enviar lembretes\" numa aba de horário."); return; }
+        string modo = Nucleo.Cfg.Lembrete.Modo;
+        string? pasta = modo == "texto" ? null : Nucleo.PastaAudioAtual();
+        if (modo != "texto" && EnvioLembretes.AudiosDaPasta(pasta).Count == 0)
+        {
+            await Janelas.Mensagem(pasta is null ? $"Nenhuma faixa de horário de lembrete agora ({DateTime.Now:HH:mm})."
+                                                 : $"Não há áudio .ogg na pasta da faixa atual:\n{pasta}");
+            return;
+        }
+        await EnviarAgenda(agenda, modo, pasta);
+    }
+
+    private async Task EnviarAgenda(List<ItemAgenda> agenda, string modo, string? pasta)
+    {
+        _enviando = true;
         try
         {
-            var agenda = Nucleo.PrepararLembretes(slot.Slot);
-            Agenda.Recarregar();
-            AbaSelecionada = Abas.First(a => a.Id == "__agenda");
-            Status($"{agenda.Count} contato(s) na Agenda. O envio pelo WhatsApp chega na próxima etapa.");
+            var cfg = Nucleo.Cfg.Whatsapp;
+            var r = await Janelas.Envio($"Enviando lembretes ({(modo == "texto" ? "texto" : "áudio + nome")})",
+                (log, progresso, ct) => EnvioLembretes.EnviarAsync(WhatsApp, agenda, modo, pasta, cfg, log, progresso, ct));
+            if (r is null) return;
+            Status($"{r.Enviados} de {r.Total} lembrete(s) enviados{(r.Cancelado ? " (envio interrompido)" : "")}.",
+                   r.Falhas.Count > 0 ? "#F59E0B" : "#16A34A");
+            if (r.Falhas.Count > 0)
+                await Janelas.Mensagem($"{r.Enviados} de {r.Total} lembrete(s) enviados. Não foram:\n\n" + string.Join("\n", r.Falhas));
         }
-        catch (Exception e) { Log.Erro(e.ToString()); await Janelas.Mensagem(e.Message); }
+        finally { _enviando = false; }
     }
 
     // ------------------------------------------------------------------ Justifica

@@ -311,6 +311,13 @@ public class Nucleo
     }
 
     /// <summary>Monta a Agenda de lembretes: alunos da aba sem J, com telefones limpos.</summary>
+    /// <summary>Pasta dos áudios da faixa atual: &lt;audios&gt;\Semana|Sabado\0745... (null fora de faixa).</summary>
+    public string? PastaAudioAtual(DateTime? agora = null)
+    {
+        var f = Faixas.FaixaAudio(agora ?? Agora());
+        return f is null ? null : Path.Combine(Cfg.P("audios_lembretes"), f.Value.Dia, f.Value.Faixa);
+    }
+
     public List<ItemAgenda> PrepararLembretes(Slot slot, DateTime? agora = null)
     {
         string? rot = Faixas.RotuloHoraLembrete(agora ?? Agora());

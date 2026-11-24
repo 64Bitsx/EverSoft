@@ -6,6 +6,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using EverSoft.App.ViewModels;
+using EverSoft.Core.Automacao;
 using EverSoft.Core.Configuracao;
 using EverSoft.Core.Servicos;
 using EverSoft.Core.Util;
@@ -308,5 +309,66 @@ public partial class MainWindow : Window, IJanelas
             || l.StartsWith("NÃO ENCONTRADO", StringComparison.OrdinalIgnoreCase)
             || l.StartsWith("Erro ao", StringComparison.OrdinalIgnoreCase)
             || (l.StartsWith("Aba ") && l.EndsWith("não existe."));
+    }
+
+    /// <summary>
+    /// Janelinha do envio pelo WhatsApp: mostra quem está sendo enviado, a barra de progresso e o botão Parar.
+    /// Fecha sozinha ao terminar. Não bloqueia o EverSoft.
+    /// </summary>
+    public async Task<ResultadoEnvio?> Envio(string titulo,
+        Func<Action<string>, Action<int, int>, CancellationToken, Task<ResultadoEnvio>> trabalho)
+    {
+        using var cts = new CancellationTokenSource();
+        var texto = new TextBlock { Text = "Preparando...", TextWrapping = TextWrapping.Wrap, FontSize = 14, Foreground = Brush.Parse("#0F172A") };
+        var barra = new ProgressBar { Minimum = 0, Maximum = 1, Height = 10, IsIndeterminate = true, Foreground = Brush.Parse("#14B8A6") };
+        var parar = new Button { Content = "Parar envio", HorizontalAlignment = HorizontalAlignment.Right, MinWidth = 110, HorizontalContentAlignment = HorizontalAlignment.Center };
+        parar.Classes.Add("vermelho");
+        var janela = new Window
+        {
+            Title = titulo, Icon = SplashWindow.Icone(), Width = 460, SizeToContent = SizeToContent.Height, CanResize = false,
+            WindowStartupLocation = WindowStartupLocation.Manual, ShowInTaskbar = true, Topmost = true,
+            Content = new StackPanel
+            {
+                Margin = new Thickness(20), Spacing = 12,
+                Children =
+                {
+                    new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, Children =
+                    {
+                        new Image { Source = SplashWindow.Logo(), Width = 40, Height = 40 },
+                        new TextBlock { Text = titulo, FontWeight = FontWeight.Bold, FontSize = 16, VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap, MaxWidth = 360 },
+                    } },
+                    texto, barra, parar,
+                },
+            },
+        };
+        // canto inferior direito da tela, para não atrapalhar
+        var tela = Screens.ScreenFromWindow(this) ?? Screens.Primary;
+        if (tela is not null)
+        {
+            var area = tela.WorkingArea;
+            janela.Position = new PixelPoint(area.Right - (int)(480 * tela.Scaling), area.Bottom - (int)(230 * tela.Scaling));
+        }
+        parar.Click += (_, _) => { cts.Cancel(); parar.IsEnabled = false; parar.Content = "Parando..."; };
+        janela.Closing += (_, _) => cts.Cancel();
+
+        ResultadoEnvio? resultado = null;
+        janela.Show(this);
+        try
+        {
+            resultado = await Task.Run(() => trabalho(
+                m => Dispatcher.UIThread.Post(() => texto.Text = m.Trim()),
+                (i, n) => Dispatcher.UIThread.Post(() => { barra.IsIndeterminate = false; barra.Maximum = n; barra.Value = i; }),
+                cts.Token));
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception e)
+        {
+            Log.Erro("WhatsApp: " + e);
+            janela.Close();
+            await Mensagem("O envio pelo WhatsApp parou com erro:\n" + e.Message);
+            return null;
+        }
+        janela.Close();
+        return resultado;
     }
 }

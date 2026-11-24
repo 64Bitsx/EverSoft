@@ -90,5 +90,5 @@ public partial class SlotVM : ObservableObject
     [RelayCommand] private Task CopiarNome() => _main.CopiarTexto(Selecionada?.Nome ?? "");
     [RelayCommand] private void AlternarJ() { if (Selecionada is { Vazia: false } l) l.J = !l.J; }
     [RelayCommand] private Task PreencheJustificados() => _main.TransferirParaJustifica(this);
-    [RelayCommand] private Task Lembretes() => _main.PrepararLembretes(this);
+    [RelayCommand] private Task Lembretes() => _main.EnviarLembretes(this);
 }

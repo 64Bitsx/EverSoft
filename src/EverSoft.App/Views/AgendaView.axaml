@@ -7,11 +7,12 @@
   <DockPanel>
     <StackPanel DockPanel.Dock="Top" Margin="2,0,0,8">
       <TextBlock Classes="titulo" Text="Agenda"/>
-      <TextBlock Classes="subtitulo" Text="Contatos dos lembretes de aula (o envio pelo WhatsApp chega na etapa 3)"/>
+      <TextBlock Classes="subtitulo" Text="Contatos do último envio de lembretes"/>
     </StackPanel>
     <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
       <TextBlock DockPanel.Dock="Right" Classes="subtitulo" Text="{Binding Resumo}" VerticalAlignment="Center"/>
       <StackPanel Orientation="Horizontal" Spacing="8">
+        <Button Classes="dourado" Content="Reenviar lembretes" Command="{Binding ReenviarCommand}"/>
         <Button Content="Limpar agenda" Command="{Binding LimparCommand}"/>
       </StackPanel>
     </DockPanel>

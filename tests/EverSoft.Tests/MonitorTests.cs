@@ -85,6 +85,17 @@ public class MonitorTests : IDisposable
     }
 
     [Fact]
+    public void Base_Prepara_sem_JSON_e_convertida_uma_unica_vez()
+    {
+        string json = EverSoft.Core.Planilhas.FonteJson.CaminhoEspelho(_c.Cfg.P("tec_json_dir"), _c.Cfg.P("base_prepara"));
+        File.Delete(json);
+        Assert.Contains(_c.Cfg.P("base_prepara"), Sincronizacao.ConverterAlteradas(_c.Cfg));
+        Assert.True(File.Exists(json));
+        TornarMaisNovo(_c.Cfg.P("base_prepara"));
+        Assert.DoesNotContain(_c.Cfg.P("base_prepara"), Sincronizacao.ConverterAlteradas(_c.Cfg));
+    }
+
+    [Fact]
     public void Sincronia_nao_reconverte_a_Base_Prepara()
     {
         var log = new List<string>();

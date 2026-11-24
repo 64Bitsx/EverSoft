@@ -76,7 +76,11 @@ public static class Sincronizacao
     public static List<string> ConverterAlteradas(AppConfig cfg, Action<string>? log = null)
     {
         string pasta = cfg.P("tec_json_dir");
-        var alteradas = EntradasTec(cfg).Concat(EntradasSincronia(cfg))
+        // A Base Prepara só é convertida se o JSON dela ainda não existir (conversão única).
+        var unicas = DataHub.Fontes.Where(f => SoConvertidasUmaVez.Contains(f.Chave) && cfg.P(f.ChaveCaminho) != "")
+            .Select(f => new Entrada(cfg.P(f.ChaveCaminho), f.Abas, false))
+            .Where(e => !File.Exists(FonteJson.CaminhoEspelho(pasta, e.Caminho)));
+        var alteradas = EntradasTec(cfg).Concat(EntradasSincronia(cfg)).Concat(unicas)
             .Where(e => e.Caminho != "" && File.Exists(e.Caminho))
             .Where(e =>
             {
