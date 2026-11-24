@@ -114,6 +114,9 @@ public class AppConfig
             var mesclado = Json.Mesclar(JsonSerializer.SerializeToNode(padrao, Json.Opcoes), lido);
             cfg = mesclado.Deserialize<AppConfig>(Json.Opcoes) ?? padrao;
         }
+        // A versão Python ativava "Chrome"; agora a janela é a do WhatsApp, em qualquer navegador.
+        if (string.IsNullOrWhiteSpace(cfg.Whatsapp.JanelaTitulo) || cfg.Whatsapp.JanelaTitulo.Trim().Equals("Chrome", StringComparison.OrdinalIgnoreCase))
+            cfg.Whatsapp.JanelaTitulo = "WhatsApp";
         // A pasta que de fato abrimos é a que vale (o config pode ter vindo de outro PC).
         cfg.DadosAppDir = pastaDados;
         Log.Pasta = cfg.PastaDados;
@@ -225,7 +228,10 @@ public class HistoricoConfig
 public class WhatsAppConfig
 {
     public string GrupoJustifica { get; set; } = "TEC GUARABIRA";
-    public string JanelaTitulo { get; set; } = "Chrome";
+    /// <summary>Trecho do título da janela do WhatsApp Web (qualquer navegador), usado no "nircmd win activate ititle".</summary>
+    public string JanelaTitulo { get; set; } = "WhatsApp";
+    /// <summary>Caminho do nircmd.exe; vazio = procura ao lado do EverSoft.exe, no PATH e no Windows.</summary>
+    public string Nircmd { get; set; } = "";
     public List<int> CliqueBusca { get; set; } = new() { 540, 170 };
     public List<string> AtalhoNovoChat { get; set; } = new() { "ctrl", "alt", "n" };
     public double EsperaAtivar { get; set; } = 4.0;

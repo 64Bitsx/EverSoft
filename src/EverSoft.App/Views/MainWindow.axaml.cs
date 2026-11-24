@@ -220,11 +220,18 @@ public partial class MainWindow : Window, IJanelas
         var grupo = d.Campo(cfg.Whatsapp.GrupoJustifica);
         d.Rotulo("Modo do lembrete (audio ou texto)");
         var modo = d.Campo(cfg.Lembrete.Modo);
+        d.Rotulo("Título da janela do WhatsApp (trecho usado no nircmd win activate)");
+        var janela = d.Campo(cfg.Whatsapp.JanelaTitulo);
+        d.Rotulo("Caminho do nircmd.exe (vazio = ao lado do EverSoft.exe, no PATH ou no Windows)");
+        var nircmd = d.Campo(cfg.Whatsapp.Nircmd);
+        d.Rotulo("Contagem antes de começar o envio (segundos)");
+        var contagem = d.Campo(cfg.Whatsapp.ContagemRegressiva.ToString());
 
         d.Botao("Cancelar", () => d.Fechar(false)).IsCancel = true;
         d.Botao("Salvar", async () =>
         {
             if (!int.TryParse(seg.Text, out int s) || s < 0) { await Mensagem("Informe um número de segundos válido."); return; }
+            if (!int.TryParse(contagem.Text, out int cont) || cont < 0) { await Mensagem("Informe uma contagem válida (segundos)."); return; }
             foreach (var (k, t) in campos) cfg.Caminhos[k] = (t.Text ?? "").Trim();
             cfg.DadosAppDir = (pasta.Text ?? "").Trim();
             cfg.SincroniaAutomatica = auto.IsChecked == true;
@@ -232,6 +239,9 @@ public partial class MainWindow : Window, IJanelas
             cfg.BackupAntesDeGravar = backup.IsChecked == true;
             cfg.Whatsapp.GrupoJustifica = (grupo.Text ?? "").Trim();
             cfg.Lembrete.Modo = (modo.Text ?? "").Trim() == "texto" ? "texto" : "audio";
+            cfg.Whatsapp.JanelaTitulo = string.IsNullOrWhiteSpace(janela.Text) ? "WhatsApp" : janela.Text.Trim();
+            cfg.Whatsapp.Nircmd = (nircmd.Text ?? "").Trim();
+            cfg.Whatsapp.ContagemRegressiva = cont;
             d.Fechar(true);
         }, "verde");
         await d.ShowDialog(this);
@@ -313,7 +323,7 @@ public partial class MainWindow : Window, IJanelas
 
     /// <summary>
     /// Janelinha do envio pelo WhatsApp: mostra quem está sendo enviado, a barra de progresso e o botão Parar.
-    /// Fecha sozinha ao terminar. Não bloqueia o EverSoft.
+    /// Fecha sozinha ao terminar. Não rouba o foco da janela do WhatsApp.
     /// </summary>
     public async Task<ResultadoEnvio?> Envio(string titulo,
         Func<Action<string>, Action<int, int>, CancellationToken, Task<ResultadoEnvio>> trabalho)
@@ -326,7 +336,7 @@ public partial class MainWindow : Window, IJanelas
         var janela = new Window
         {
             Title = titulo, Icon = SplashWindow.Icone(), Width = 460, SizeToContent = SizeToContent.Height, CanResize = false,
-            WindowStartupLocation = WindowStartupLocation.Manual, ShowInTaskbar = true, Topmost = true,
+            WindowStartupLocation = WindowStartupLocation.Manual, ShowInTaskbar = true, Topmost = true, ShowActivated = false,
             Content = new StackPanel
             {
                 Margin = new Thickness(20), Spacing = 12,

@@ -30,8 +30,7 @@ sem uma apagar o que a outra gravou. Os JSONs das planilhas continuam compartilh
 
 No Visual Studio, clique com o botão direito em **EverSoft.App** > **Definir como Projeto de Inicialização** e aperte **F5**.
 
-Para gerar o executável (não precisa instalar .NET). O `EverSoft.exe` sai junto com a pasta
-`.playwright` (motor do WhatsApp Web); as duas coisas precisam ficar lado a lado:
+Para gerar o executável único (um arquivo só, não precisa instalar .NET):
 
 ```
 dotnet publish src/EverSoft.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o publicar
@@ -53,7 +52,7 @@ Tudo o que o app **sabe fazer**, sem a parte visual ainda:
 **Compatível com a versão Python:** lê o mesmo `config.json`, o mesmo `estado.json` e os mesmos
 JSONs espelho. Dá para usar as duas versões em paralelo durante a transição.
 
-**75 testes automáticos** conferem as regras, usando planilhas fictícias criadas na hora.
+**74 testes automáticos** conferem as regras, usando planilhas fictícias criadas na hora.
 Vários resultados esperados foram tirados rodando o próprio `EverSoft.py`.
 
 **Testado com as planilhas reais:** a Automação TEC, a Sincronia e a montagem das 9 abas de horário
@@ -96,22 +95,26 @@ Pelo terminal (opcional): `dotnet test` dentro da pasta.
 
 ## Etapa 3: WhatsApp Web (em andamento)
 
-O envio usa o **Playwright** (`src/EverSoft.Core/Automacao/WhatsAppWeb.cs`), que controla o Google Chrome
-(ou o Edge) já instalado no computador pelos elementos da página, sem mexer no mouse e no teclado do Windows.
-O navegador abre com um perfil só do EverSoft (`%APPDATA%\EverSoft\whatsapp-perfil`): na primeira vez é preciso
-ler o QR code; depois o login fica guardado.
+Igual à versão Python (`src/EverSoft.Core/Automacao/WhatsAppTeclado.cs`): o **nircmd** traz para a frente
+(`win activate ititle WhatsApp`) e maximiza (`win max`) a janela do WhatsApp Web já aberta, em qualquer
+navegador, e cada conversa começa com **Ctrl+Alt+N** → número (ou nome do grupo) → Enter. Áudios e textos
+vão pela área de transferência + Ctrl+V. O `nircmd.exe` pode ficar ao lado do `EverSoft.exe`, no PATH,
+na pasta do Windows ou no caminho informado em Configurações.
+
+Mais seguro que antes: antes de cada passo o app confere se a janela da frente ainda é a do WhatsApp;
+se não for, ativa de novo, e se não conseguir, **para o envio** em vez de digitar em outra janela.
 
 - **Enviar lembretes** (aba de horário): monta a Agenda sem sair da aba e já começa o envio.
   Modo `audio`: um `.ogg` sorteado da pasta da faixa (`<audios>\Semana|Sabado\0745...`) e depois "Aluno: Nome".
-  Modo `texto`: a mensagem montada na Agenda. Uma janelinha no canto mostra o progresso e tem o botão **Parar**.
+  Modo `texto`: a mensagem montada na Agenda.
 - **Reenviar lembretes** (aba Agenda): manda de novo a Agenda que já está montada.
-- Números sem WhatsApp são pulados e listados no fim.
-
-Se o WhatsApp mudar o site, os seletores ficam todos juntos no topo de `WhatsAppWeb.cs`.
+- **Enviar justificados** (aba Justifica): manda a mensagem da faixa ao grupo configurado; só depois de enviada
+  as justificativas vão para o JSON e a faixa é limpa.
+- Uma janelinha no canto (que não rouba o foco) mostra o progresso e tem o botão **Parar**.
 
 ## Próximas etapas
 
-3. Continuar o WhatsApp: boletins (com o Boletim.png do caminho configurado), disparo da aba MSG e justificados no grupo
+3. Continuar o WhatsApp: boletins (com o Boletim.png do caminho configurado) e disparo da aba MSG
 4. Remover faltas no Sistema Escola com Playwright
 5. Executável (`EverSoft.exe`) e instalador
 

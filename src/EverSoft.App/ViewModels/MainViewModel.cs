@@ -294,8 +294,8 @@ public partial class MainViewModel : ObservableObject
     private IWhatsApp? _whats;
     private bool _enviando;
     /// <summary>Troca o WhatsApp real por um falso (testes e capturas de tela).</summary>
-    public Func<IWhatsApp> CriarWhatsApp { get; set; } = () => new WhatsAppWeb();
-    private IWhatsApp WhatsApp => _whats ??= CriarWhatsApp();
+    public Func<IWhatsApp>? CriarWhatsApp { get; set; }
+    private IWhatsApp WhatsApp => _whats ??= CriarWhatsApp?.Invoke() ?? new WhatsAppTeclado(Nucleo.Cfg.Whatsapp);
 
     /// <summary>
     /// Botão "Enviar lembretes": alimenta a Agenda (sem sair da aba atual) e já começa
@@ -365,19 +365,39 @@ public partial class MainViewModel : ObservableObject
     // ------------------------------------------------------------------ Justifica
     public async Task EnviarJustificados(string? faixa)
     {
+        if (_enviando) { await Janelas.Mensagem("Já há um envio pelo WhatsApp em andamento."); return; }
         var m = Nucleo.MensagemFaltosos(faixa: faixa);
         if (m is null) { await Janelas.Mensagem("Escolha uma faixa de horário."); return; }
-        if (!await Janelas.Confirmar($"A mensagem da faixa {m.Faixa} será copiada para você colar no grupo " +
-                                     $"'{Nucleo.Cfg.Whatsapp.GrupoJustifica}'.\nDepois disso, as justificativas vão para o JSON " +
-                                     "e a faixa é limpa da lista.\n\n" + m.Mensagem))
+        string grupo = Nucleo.Cfg.Whatsapp.GrupoJustifica;
+        if (!await Janelas.Confirmar($"A mensagem da faixa {m.Faixa} vai para o grupo '{grupo}' pelo WhatsApp.\n" +
+                                     "Depois do envio, as justificativas vão para o JSON e a faixa é limpa da lista.\n\n" + m.Mensagem))
             return;
-        await Janelas.CopiarTexto(m.Mensagem);
+        _enviando = true;
+        ResultadoEnvio? r;
+        try
+        {
+            r = await Janelas.Envio("Enviando justificados", async (log, progresso, ct) =>
+            {
+                await WhatsApp.AbrirAsync(log, ct);
+                log($"Abrindo o grupo {grupo}...");
+                await WhatsApp.AbrirGrupoAsync(grupo, ct);
+                log("Enviando a mensagem...");
+                await WhatsApp.EnviarTextoAsync(m.Mensagem, ct);
+                return new ResultadoEnvio(1, 1, new(), false);
+            });
+        }
+        finally { _enviando = false; }
+        if (r is null || r.Enviados == 0)
+        {
+            Status("Os justificados não foram enviados; a lista ficou como estava.", "#F59E0B");
+            return;
+        }
         int qtd = 0;
         try { qtd = Nucleo.GravarJsonJustificativas(m.Codigo); }
         catch (Exception e) { Log.Erro($"JSON de justificativas: {e.Message}"); Status("Não foi possível gravar o JSON: " + e.Message, "#DC2626"); }
         int n = Nucleo.LimparFaixa(m.Codigo);
         Justifica.Recarregar();
-        Status($"Faixa {m.Codigo}: mensagem copiada; {n} linha(s) removida(s); {qtd} justificativa(s) no JSON.");
+        Status($"Faixa {m.Codigo}: enviada ao grupo; {n} linha(s) removida(s); {qtd} justificativa(s) no JSON.");
     }
 
     public async Task EditarLinhaJustifica(RegistroJustifica? atual)

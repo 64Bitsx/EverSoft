@@ -58,6 +58,12 @@ public static class EnvioLembretes
                     await Task.Delay(TimeSpan.FromSeconds(cfg.EsperaEntreAlunos), ct);
                 }
                 catch (OperationCanceledException) { throw; }
+                catch (JanelaPerdidaException e)
+                {
+                    falhas.Add($"Envio parado em {c.Nome}: {e.Message}");
+                    log("  ERRO: " + e.Message);
+                    return new(enviados, itens.Count, falhas, true);
+                }
                 catch (Exception e)
                 {
                     falhas.Add($"{c.Nome} ({c.Numero}): {e.Message}");

@@ -1,7 +1,5 @@
-using System.Text.Json;
 using EverSoft.Core.Automacao;
 using EverSoft.Core.Configuracao;
-using Microsoft.Playwright;
 using Xunit;
 
 namespace EverSoft.Tests;
@@ -38,13 +36,6 @@ public class WhatsAppTests : IDisposable
         public Task EnviarArquivoAsync(string caminho, CancellationToken ct) { Feito.Add($"{_atual}|arquivo|{Path.GetFileName(caminho)}"); return Task.CompletedTask; }
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
     }
-
-    [Theory]
-    [InlineData("83991343421", "5583991343421")]
-    [InlineData("(83) 9134-3421", "558391343421")]
-    [InlineData("5583991343421", "5583991343421")]
-    [InlineData("083991343421", "5583991343421")]
-    public void Numero_vai_com_55(string entrada, string esperado) => Assert.Equal(esperado, Telefone.ParaWhatsApp(entrada));
 
     [Fact]
     public async Task Modo_audio_manda_audio_e_depois_o_nome_do_aluno()
@@ -92,70 +83,86 @@ public class WhatsAppTests : IDisposable
         Assert.DoesNotContain(wa.Feito, f => f.Contains("Bia"));
     }
 
-    // ---------------------------------------------------------------- navegador de verdade + página que imita o WhatsApp Web
-    private const string Chromium = "/opt/pw-browsers/chromium-1243/chrome-linux64/chrome";
+    // ---------------------------------------------------------------- nircmd + teclado (com um Windows de mentira)
+    private sealed class WindowsFalso : ISistemaTeclado
+    {
+        public List<string> Passos { get; } = new();
+        public string Frente { get; set; } = "Outra coisa";
+        public bool AchaJanela { get; set; } = true;
+        /// <summary>Depois de N passos de teclado, outra janela "rouba" a frente.</summary>
+        public int? PerdeFocoApos { get; set; }
+        public bool Nircmd(params string[] args)
+        {
+            Passos.Add("nircmd " + string.Join(' ', args));
+            if (args[1] == "activate" && AchaJanela && PerdeFocoApos is null) Frente = "(3) WhatsApp - Google Chrome";
+            return AchaJanela;
+        }
+        private void Tecla(string t)
+        {
+            Passos.Add(t);
+            if (PerdeFocoApos is int n && Passos.Count(p => !p.StartsWith("nircmd")) >= n) Frente = "Bloco de Notas";
+        }
+        public void Atalho(params ushort[] teclas) => Tecla("tecla " + string.Join('+', teclas.Select(Nome)));
+        public void Digitar(string texto) => Tecla("digita " + texto);
+        public void CopiarTexto(string texto) => Passos.Add("copia texto " + texto);
+        public void CopiarArquivo(string caminho) => Passos.Add("copia arquivo " + Path.GetFileName(caminho));
+        public string TituloDaJanelaDaFrente() => Frente;
+        private static string Nome(ushort k) => k switch { 0x11 => "Ctrl", 0x12 => "Alt", 0x0D => "Enter", 0x1B => "Esc", _ => ((char)k).ToString() };
+    }
 
-    private const string PaginaFalsa = """
-        <!doctype html><html><body>
-        <div id="side" style="display:none"><div id="pane-side">conversas</div></div>
-        <div id="main" style="display:none"><footer><div id="cx" contenteditable="true" style="min-height:20px;border:1px solid #000"></div></footer></div>
-        <div id="previa" style="display:none"><span data-icon="send" id="btn">enviar</span></div>
-        <script>
-          const fone = new URLSearchParams(location.search).get('phone');
-          const reg = x => { const e = JSON.parse(localStorage.getItem('env') || '[]'); e.push(x); localStorage.setItem('env', JSON.stringify(e)); };
-          let pendente = null;
-          setTimeout(() => {
-            document.getElementById('side').style.display = '';
-            if (!fone) return;
-            if (fone === '5511900000000') {
-              const d = document.createElement('div'); d.setAttribute('role', 'dialog');
-              d.textContent = 'O número de telefone compartilhado por URL é inválido.'; document.body.appendChild(d); return;
-            }
-            document.getElementById('main').style.display = '';
-          }, 300);
-          const cx = document.getElementById('cx');
-          cx.addEventListener('keydown', e => {
-            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); reg({ fone, tipo: 'texto', v: cx.innerText }); cx.innerText = ''; }
-          });
-          cx.addEventListener('paste', e => {
-            const f = e.clipboardData && e.clipboardData.files[0];
-            if (!f) return; e.preventDefault(); pendente = f.name + ':' + f.type + ':' + f.size;
-            document.getElementById('main').style.display = 'none'; document.getElementById('previa').style.display = '';
-          });
-          document.getElementById('btn').onclick = () => {
-            reg({ fone, tipo: 'arquivo', v: pendente });
-            document.getElementById('previa').style.display = 'none'; document.getElementById('main').style.display = '';
-          };
-        </script></body></html>
-        """;
+    private static WhatsAppConfig Rapido() => new() { ContagemRegressiva = 0, EsperaEntreAlunos = 0 };
 
     [Fact]
-    public async Task WhatsAppWeb_envia_audio_e_texto_na_pagina_de_simulacao()
+    public async Task Teclado_ativa_maximiza_e_usa_Ctrl_Alt_N_como_no_Python()
     {
-        if (!File.Exists(Chromium)) return;   // só roda onde há o navegador de teste
-        string pasta = CriarAudios("lembrete.ogg");
-        IBrowserContext? ctx = null;
-        await using var wa = new WhatsAppWeb
+        string pasta = CriarAudios("a.ogg");
+        var so = new WindowsFalso();
+        var wa = new WhatsAppTeclado(Rapido(), so) { Ritmo = 0 };
+        var r = await EnvioLembretes.EnviarAsync(wa, Agenda(("Ana Lima", "83991111111")), "audio", pasta, Rapido(), _ => { });
+        Assert.Equal(1, r.Enviados);
+        Assert.Equal(new[]
         {
-            ExecutavelNavegador = Chromium, Headless = true, PastaPerfil = Path.Combine(_pasta, "perfil"),
-            EsperaAnexo = 0.2, TempoParaAbrirConversa = TimeSpan.FromSeconds(15), TempoParaLogin = TimeSpan.FromSeconds(15),
-            AoCriarContexto = async c =>
-            {
-                ctx = c;
-                await c.RouteAsync("https://web.whatsapp.com/**", r => r.FulfillAsync(new() { ContentType = "text/html", Body = PaginaFalsa }));
-            },
-        };
-        var r = await EnvioLembretes.EnviarAsync(wa,
-            Agenda(("Ana Lima", "83991111111"), ("Sem Zap", "11900000000"), ("Bruno Reis", "(83) 99222-2222")),
-            "audio", pasta, SemEspera, _ => { });
+            "nircmd win activate ititle WhatsApp", "nircmd win max ititle WhatsApp",
+            "tecla Esc", "tecla Ctrl+Alt+N", "digita 83991111111", "tecla Enter",
+            "copia arquivo a.ogg", "tecla Ctrl+V", "tecla Enter",
+            "copia texto Aluno: Ana Lima", "tecla Ctrl+V", "tecla Enter",
+        }, so.Passos);
+    }
 
-        Assert.Equal(2, r.Enviados);
-        Assert.Single(r.Falhas);
-        string json = await ctx!.Pages[0].EvaluateAsync<string>("() => localStorage.getItem('env')");
-        var env = JsonSerializer.Deserialize<List<Dictionary<string, string>>>(json)!;
-        Assert.Equal(4, env.Count);
-        Assert.Equal(("5583991111111", "arquivo", "lembrete.ogg:audio/ogg:7"), (env[0]["fone"], env[0]["tipo"], env[0]["v"]));
-        Assert.Equal(("5583991111111", "texto", "Aluno: Ana Lima"), (env[1]["fone"], env[1]["tipo"], env[1]["v"]));
-        Assert.Equal(("5583992222222", "texto", "Aluno: Bruno Reis"), (env[3]["fone"], env[3]["tipo"], env[3]["v"]));
+    [Fact]
+    public async Task Justificados_vao_para_o_grupo_pelo_Ctrl_Alt_N()
+    {
+        var so = new WindowsFalso();
+        var wa = new WhatsAppTeclado(Rapido(), so) { Ritmo = 0 };
+        await wa.AbrirAsync(_ => { }, default);
+        await wa.AbrirGrupoAsync("TEC GUARABIRA", default);
+        await wa.EnviarTextoAsync("FALTOSOS 13:00 ÀS 15:00\nAna", default);
+        Assert.Contains("digita TEC GUARABIRA", so.Passos);
+        Assert.Equal("copia texto FALTOSOS 13:00 ÀS 15:00\nAna", so.Passos[^3]);
+        Assert.Equal("tecla Enter", so.Passos[^1]);
+    }
+
+    [Fact]
+    public async Task Sem_a_janela_do_WhatsApp_nada_e_digitado()
+    {
+        var so = new WindowsFalso { AchaJanela = false };
+        var wa = new WhatsAppTeclado(Rapido(), so) { Ritmo = 0 };
+        var e = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            EnvioLembretes.EnviarAsync(wa, Agenda(("Ana", "83991111111")), "texto", null, Rapido(), _ => { }));
+        Assert.Contains("WhatsApp", e.Message);
+        Assert.DoesNotContain(so.Passos, p => p.StartsWith("tecla") || p.StartsWith("digita"));
+    }
+
+    [Fact]
+    public async Task Se_outra_janela_vier_para_frente_o_envio_para_em_vez_de_digitar_nela()
+    {
+        var so = new WindowsFalso { Frente = "(1) WhatsApp - Microsoft Edge", PerdeFocoApos = 2 };
+        var wa = new WhatsAppTeclado(Rapido(), so) { Ritmo = 0 };
+        var r = await EnvioLembretes.EnviarAsync(wa, Agenda(("Ana", "83991111111"), ("Bia", "83992222222")), "texto", null, Rapido(), _ => { });
+        Assert.Equal(0, r.Enviados);
+        Assert.True(r.Cancelado);
+        Assert.Single(r.Falhas);                                   // parou no primeiro, não tentou a Bia
+        Assert.Contains("saiu da frente", r.Falhas[0]);
+        Assert.DoesNotContain(so.Passos, p => p.StartsWith("digita"));
     }
 }
