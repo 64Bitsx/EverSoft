@@ -9,7 +9,7 @@
     <RootNamespace>EverSoft.App</RootNamespace>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-    <Version>2.0.0</Version>
+    <Version>2.1.0</Version>
     <Product>EverSoft</Product>
     <ApplicationIcon>Assets\eversoft-icon.ico</ApplicationIcon>
   </PropertyGroup>

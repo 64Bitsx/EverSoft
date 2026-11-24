@@ -33,7 +33,11 @@ public class Nucleo
         Cfg = cfg;
         Estado = estado ?? Estado.Carregar(cfg.CaminhoEstado);
         Hub = hub ?? new DataHub(cfg);
+        InicioCap2 = new InicioCap2(Path.Combine(cfg.PastaDados, "inicio_cap2.json"));
     }
+
+    /// <summary>Datas de entrada no Cap 2 (coluna INÍCIO de quem está no Cap 2).</summary>
+    public InicioCap2 InicioCap2 { get; }
 
     private DateOnly Hoje => DateOnly.FromDateTime(Agora());
 
@@ -52,7 +56,7 @@ public class Nucleo
             if (_cacheLinhas.TryGetValue(chave, out var l)) return l;
             if (_cacheLinhas.Count > 0 && _cacheLinhas.Keys.First().Item1 != chave.Item1) _cacheLinhas.Clear();
         }
-        var nova = LinhaAluno.Calcular(Hub, matricula ?? "", Hoje);
+        var nova = LinhaAluno.Calcular(Hub, matricula ?? "", Hoje, InicioCap2.Buscar);
         lock (_trava) _cacheLinhas[chave] = nova;
         return nova;
     }
@@ -131,6 +135,8 @@ public class Nucleo
             [1] = nome, [2] = obs, [3] = c, [4] = "", [5] = naoPratica ? " e não pratica" : "",
         };
         Gravador.GravarNoTopo(Cfg.P("observacoes"), "Sheet1", valores, 5);
+        if (c == "Cap 2")
+            try { InicioCap2.Registrar(nome, Hoje); } catch (Exception e) { Log.Erro($"início do Cap 2 de {nome}: {e.Message}"); }
         Hub.Carregar("obs");
     }
 

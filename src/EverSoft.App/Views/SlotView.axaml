@@ -33,6 +33,18 @@
     <DataGrid x:Name="Grade" ItemsSource="{Binding Linhas}" SelectedItem="{Binding Selecionada}"
               AutoGenerateColumns="False" CanUserSortColumns="False" CanUserReorderColumns="False"
               SelectionMode="Single" RowHeight="30" HorizontalScrollBarVisibility="Auto" HeadersVisibility="Column" BorderBrush="#E2E8F0" BorderThickness="1">
+      <DataGrid.Styles>
+        <!-- Aluno sem status: a linha inteira fica laranja -->
+        <Style Selector="DataGridRow" x:DataType="vm:LinhaVM">
+          <Setter Property="Background" Value="{Binding FundoLinha}"/>
+        </Style>
+        <Style Selector="Button.sistema">
+          <Setter Property="Padding" Value="0"/><Setter Property="Width" Value="30"/><Setter Property="Height" Value="24"/>
+          <Setter Property="Background" Value="#E0F2FE"/><Setter Property="CornerRadius" Value="6"/>
+          <Setter Property="HorizontalContentAlignment" Value="Center"/><Setter Property="VerticalContentAlignment" Value="Center"/>
+          <Setter Property="HorizontalAlignment" Value="Center"/><Setter Property="FontSize" Value="14"/>
+        </Style>
+      </DataGrid.Styles>
       <DataGrid.ContextMenu>
         <ContextMenu>
           <MenuItem Header="Informações do aluno" Command="{Binding InfoCommand}"/>
@@ -49,12 +61,20 @@
       <DataGrid.Columns>
         <DataGridTextColumn Header="PC" Binding="{Binding Pc}" IsReadOnly="True" Width="40"/>
         <DataGridCheckBoxColumn Header="J" Binding="{Binding J}" Width="40"/>
+        <DataGridTemplateColumn Header="" Width="40" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:LinhaVM">
+              <Button Classes="sistema" Content="🌐" ToolTip.Tip="Abrir a conta do aluno no Sistema Escola"
+                      Command="{Binding AbrirSistemaCommand}" IsVisible="{Binding !Vazia}"/>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
         <DataGridTextColumn Header="MATRÍC." Binding="{Binding Matricula}" Width="96" FontWeight="Bold"/>
         <DataGridTextColumn Header="NOME" Binding="{Binding Nome}" IsReadOnly="True" Width="SizeToCells" MinWidth="160"/>
-        <DataGridTextColumn Header="MATÉRIA" Binding="{Binding Materia}" IsReadOnly="True" Width="*" MinWidth="150"/>
+        <DataGridTextColumn Header="MATÉRIA" Binding="{Binding Materia}" IsReadOnly="True" Width="SizeToCells" MinWidth="90"/>
         <DataGridTextColumn Header="AULA" Binding="{Binding Aula}" IsReadOnly="True" Width="SizeToCells" MinWidth="74"/>
         <DataGridTextColumn Header="ÚLTIMA" Binding="{Binding Ultima}" IsReadOnly="True" Width="SizeToCells" MinWidth="96"/>
-        <DataGridTextColumn Header="A PAGAR" Binding="{Binding APagar}" IsReadOnly="True" Width="SizeToCells" MinWidth="100"/>
+        <DataGridTextColumn Header="A PAGAR" Binding="{Binding APagar}" IsReadOnly="True" Width="SizeToCells" MinWidth="64"/>
         <DataGridTemplateColumn Header="SIT" Width="96" IsReadOnly="True">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:LinhaVM">

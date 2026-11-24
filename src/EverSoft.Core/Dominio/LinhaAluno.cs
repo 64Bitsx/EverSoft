@@ -27,7 +27,7 @@ public record LinhaAluno
 
     public bool Vazia => Matricula == "";
 
-    public static LinhaAluno Calcular(DataHub hub, string matricula, DateOnly hoje)
+    public static LinhaAluno Calcular(DataHub hub, string matricula, DateOnly hoje, Func<string, string?>? inicioCap2 = null)
     {
         string mat = (matricula ?? "").Trim();
         if (mat == "") return new LinhaAluno();
@@ -43,24 +43,30 @@ public record LinhaAluno
         };
         if (nome == "") return linha;
         var (pratica, apostila) = hub.BloqueioFlags(nome);
+        string sit = hub.Situacao(nome);
+        // Quem está no Cap 2 mostra a data em que entrou no Cap 2; os demais, a Base Prepara.
+        string inicio = (EhCap2(sit) ? inicioCap2?.Invoke(nome) : null) ?? hub.Inicio(nome);
         return linha with
         {
             Pratica = pratica,
             Apostila = apostila,
             R = hub.TemReposicao(nome) ? "X" : "",
-            Sit = hub.Situacao(nome),
-            Inicio = hub.Inicio(nome),
+            Sit = sit,
+            Inicio = inicio,
             Coment = hub.TemComentario(nome),
         };
     }
+
+    public static bool EhCap2(string sit) => Texto.Norm(sit).StartsWith("cap 2");
 
     /// <summary>Cores da linha conforme a situação: (fundo, texto) ou null para o padrão.</summary>
     public static (string Fundo, string Texto)? CoresDaSituacao(string sit)
     {
         string s = Texto.Norm(sit);
         if (s == "ok") return ("#1D6FD8", "#FFFFFF");
-        if (s is "cap 1" or "cap 2" or "cap 3" or "cap 4") return ("#1E293B", "#FFFFFF");
+        if (s is "cap 1" or "cap 2" or "cap 3" or "cap 4") return ("#000000", "#FFFFFF");
         if (s == "atrasado") return ("#E5383B", "#FFFFFF");
+        if (s == "adiantado") return ("#7C3AED", "#FFFFFF");
         return null;
     }
 }

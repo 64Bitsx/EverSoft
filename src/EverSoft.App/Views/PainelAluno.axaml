@@ -29,6 +29,8 @@
         <TextBlock Classes="rotulo" Grid.Row="5" Text="TEL. 3"/>   <SelectableTextBlock Classes="v" Grid.Row="5" Grid.Column="1" Text="{Binding Tel3}" FontWeight="SemiBold" Margin="0,3"/>
         <TextBlock Classes="rotulo" Grid.Row="6" Text="INSTAGRAM"/><SelectableTextBlock Classes="v" Grid.Row="6" Grid.Column="1" Text="{Binding Insta}" FontWeight="SemiBold" Margin="0,3"/>
       </Grid>
+      <Button Classes="azul" Content="📋 Copiar nome e telefones" Command="{Binding CopiarContatosCommand}" IsEnabled="{Binding TemAluno}"
+              HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="10,8" Margin="0,6,0,0"/>
     </StackPanel>
   </Border>
 </UserControl>

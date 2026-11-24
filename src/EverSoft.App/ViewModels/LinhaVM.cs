@@ -1,5 +1,6 @@
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using EverSoft.Core.Dominio;
 
 namespace EverSoft.App.ViewModels;
@@ -47,14 +48,24 @@ public partial class LinhaVM : ObservableObject
     public IBrush FundoSit => LinhaAluno.CoresDaSituacao(Sit) is { } c ? Brush.Parse(c.Fundo) : Brushes.Transparent;
     public IBrush TextoSit => LinhaAluno.CoresDaSituacao(Sit) is { } c ? Brush.Parse(c.Texto) : Brush.Parse("#1E293B");
 
+    /// <summary>Aluno sem status fica com a linha inteira laranja.</summary>
+    public bool SemStatus => !Vazia && Dados.Nome != "" && string.IsNullOrWhiteSpace(Dados.Sit);
+    public IBrush FundoLinha => SemStatus ? Brush.Parse("#FDBA74") : Brushes.Transparent;
+
+    [RelayCommand] private void AbrirSistema() => _dono.AbrirSistemaDaLinha(this);
+
     partial void OnDadosChanged(LinhaAluno value)
     {
         foreach (var p in new[] { nameof(Nome), nameof(Materia), nameof(Aula), nameof(Pratica), nameof(Apostila), nameof(R),
-                     nameof(Ultima), nameof(APagar), nameof(Sit), nameof(Inicio), nameof(TemComentario), nameof(FundoSit), nameof(TextoSit) })
+                     nameof(Ultima), nameof(APagar), nameof(Sit), nameof(Inicio), nameof(TemComentario), nameof(FundoSit), nameof(TextoSit), nameof(SemStatus), nameof(FundoLinha) })
             OnPropertyChanged(p);
     }
 
     // Quando a pessoa marca/desmarca o J ou digita uma matrícula, avisa a aba.
     partial void OnJChanged(bool value) => _dono.MarcaAlterada(this, value);
-    partial void OnMatriculaChanged(string value) => _dono.MatriculaAlterada(this, value);
+    partial void OnMatriculaChanged(string value)
+    {
+        OnPropertyChanged(nameof(Vazia));
+        _dono.MatriculaAlterada(this, value);
+    }
 }

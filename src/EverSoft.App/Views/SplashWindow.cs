@@ -42,7 +42,7 @@ public class SplashWindow : Window
                 Children =
                 {
                     new Image { Source = Logo(), Width = 250, Height = 250, HorizontalAlignment = HorizontalAlignment.Center },
-                    new TextBlock { Text = "EverSoft", Foreground = Brushes.White, FontSize = 24, FontWeight = FontWeight.Bold, HorizontalAlignment = HorizontalAlignment.Center },
+                    new TextBlock { Text = "EverSoft " + ViewModels.MainViewModel.Versao, Foreground = Brushes.White, FontSize = 24, FontWeight = FontWeight.Bold, HorizontalAlignment = HorizontalAlignment.Center },
                     _mensagem,
                     new ProgressBar { IsIndeterminate = true, Height = 6, Width = 300, Foreground = Brush.Parse("#14B8A6"), Background = Brush.Parse("#1E3A5F") },
                 },

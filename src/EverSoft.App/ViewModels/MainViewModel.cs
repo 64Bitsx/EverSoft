@@ -52,7 +52,8 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private bool _mostrarPainel = true;
     [ObservableProperty] private bool _ocupado;
     [ObservableProperty] private string _corStatus = "#16A34A";
-    public string Titulo => $"EverSoft {typeof(MainViewModel).Assembly.GetName().Version?.ToString(2)}";
+    public static string Versao => $"V{typeof(MainViewModel).Assembly.GetName().Version?.ToString(2)}";
+    public string Titulo => $"EverSoft {Versao}";
 
     private SlotVM? _slotDoAluno;
 
@@ -63,6 +64,7 @@ public partial class MainViewModel : ObservableObject
         Agenda = new AgendaVM(this);
         Boletim = new BoletimVM(this);
         Msg = new MsgVM(this);
+        Painel.Copiar = CopiarTexto;
     }
 
     // ------------------------------------------------------------------ abertura
@@ -487,5 +489,5 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private Task Sobre() => Janelas.Mensagem($"{Titulo}\nGestão pedagógica.\n\nDados do app: {Nucleo.Cfg.PastaDados}");
+    private Task Sobre() => Janelas.Mensagem($"{Titulo}\n\nDesenvolvido por \"Inferno Branco\" e Gestão Pedagógica.\n\nDados do app: {Nucleo.Cfg.PastaDados}");
 }

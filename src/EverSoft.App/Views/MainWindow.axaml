@@ -26,7 +26,9 @@
         <MenuItem Header="Sair" Click="Sair_Click" Foreground="#1E293B"/>
       </MenuItem>
       <MenuItem Header="A_juda" Foreground="White">
-        <MenuItem Header="Sobre" Command="{Binding SobreCommand}" Foreground="#1E293B"/>
+        <MenuItem Header="Sobre o EverSoft" Command="{Binding SobreCommand}" Foreground="#1E293B"/>
+        <Separator/>
+        <MenuItem Header="Desenvolvido por &quot;Inferno Branco&quot; e Gestão Pedagógica" Foreground="#1E293B" FontStyle="Italic"/>
       </MenuItem>
     </Menu>
 

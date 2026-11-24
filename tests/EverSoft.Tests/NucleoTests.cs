@@ -145,6 +145,32 @@ public class NucleoTests : IDisposable
     }
 
     [Fact]
+    public void Cap2_guarda_a_data_de_entrada_e_mostra_no_Inicio()
+    {
+        var n = _c.NovoNucleo(Segunda1330);
+        string antes = n.Linha("101").Inicio;                       // vem da Base Prepara
+        n.RegistrarStatus("Ana Lima", "", caps: new[] { false, true });
+        Assert.Equal("23/11/2026", n.Linha("101").Inicio);
+        Assert.True(File.Exists(n.InicioCap2.Arquivo));
+
+        // marcar Cap 2 de novo outro dia não muda a data de entrada
+        var depois = _c.NovoNucleo(Segunda1330.AddDays(10));
+        depois.RegistrarStatus("Ana Lima", "", caps: new[] { false, true });
+        Assert.Equal("23/11/2026", depois.Linha("101").Inicio);
+
+        // saiu do Cap 2: volta a mostrar a Base Prepara
+        depois.RegistrarStatus("Ana Lima", "", ok: true);
+        Assert.Equal(antes, depois.Linha("101").Inicio);
+    }
+
+    [Fact]
+    public void Copiar_contatos_poe_o_nome_e_os_numeros_um_abaixo_do_outro()
+    {
+        string t = EverSoft.App.ViewModels.PainelAlunoVM.TextoContatos("Ana Lima", new[] { "(83) 99134-3421", "—", "A Cadastrar", "83985755357" });
+        Assert.Equal(string.Join(Environment.NewLine, "Ana Lima", "(83) 99134-3421", "83985755357"), t);
+    }
+
+    [Fact]
     public void Bloqueio_Coments_e_RemoverNotificacao()
     {
         var n = _c.NovoNucleo(Segunda1330);

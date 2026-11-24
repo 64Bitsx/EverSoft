@@ -87,6 +87,7 @@ public partial class SlotVM : ObservableObject
     [RelayCommand] private Task Bloqueio() => _main.AbrirBloqueio(this);
     [RelayCommand] private Task Info() => _main.AbrirInfo(this);
     [RelayCommand] private void AbrirSistema() => _main.AbrirSistemaEscola(Selecionada);
+    internal void AbrirSistemaDaLinha(LinhaVM linha) => _main.AbrirSistemaEscola(linha);
     [RelayCommand] private Task CopiarNome() => _main.CopiarTexto(Selecionada?.Nome ?? "");
     [RelayCommand] private void AlternarJ() { if (Selecionada is { Vazia: false } l) l.J = !l.J; }
     [RelayCommand] private Task PreencheJustificados() => _main.TransferirParaJustifica(this);

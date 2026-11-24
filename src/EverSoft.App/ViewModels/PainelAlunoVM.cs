@@ -24,12 +24,26 @@ public partial class PainelAlunoVM : ObservableObject
     [ObservableProperty] private bool _temAluno;
 
     private readonly Dictionary<string, Bitmap?> _fotos = new();
+    private string[] _telefones = Array.Empty<string>();
+    /// <summary>Copia para a área de transferência (ligado pelo MainViewModel).</summary>
+    public Func<string, Task>? Copiar { get; set; }
+
+    /// <summary>Texto do botão "Copiar contatos": nome e os números, um abaixo do outro.</summary>
+    public static string TextoContatos(string nome, IEnumerable<string> telefones) =>
+        string.Join(Environment.NewLine, new[] { nome }.Concat(telefones
+            .Select(t => (t ?? "").Trim())
+            .Where(t => t != "" && t != "—" && t.Any(char.IsDigit))));
+
+    [CommunityToolkit.Mvvm.Input.RelayCommand]
+    private Task CopiarContatos() =>
+        TemAluno && Copiar is not null ? Copiar(TextoContatos(_nomeAtual, _telefones)) : Task.CompletedTask;
     private string _nomeAtual = "";
 
     public void Limpar()
     {
         TemAluno = false;
         _nomeAtual = "";
+        _telefones = Array.Empty<string>();
         Nome = "Nenhum aluno selecionado";
         Matricula = Materia = Ultima = Tel1 = Tel2 = Tel3 = Insta = "—";
         Situacao = "";
@@ -48,6 +62,7 @@ public partial class PainelAlunoVM : ObservableObject
         Ultima = linha.Ultima == "" ? "—" : linha.Ultima;
         var (t1, t2, t3, insta) = nucleo.Hub.Telefones(linha.Nome);
         (Tel1, Tel2, Tel3, Insta) = (t1, t2, t3, insta);
+        _telefones = new[] { t1, t2, t3 };
         Situacao = linha.Sit == "" ? "SEM STATUS" : linha.Sit.ToUpperInvariant();
         var cores = LinhaAluno.CoresDaSituacao(linha.Sit);
         FundoSituacao = cores is { } c ? Brush.Parse(c.Fundo) : Brush.Parse("#E2E8F0");
