@@ -116,6 +116,9 @@ public class AppConfig
             var mesclado = Json.Mesclar(JsonSerializer.SerializeToNode(padrao, Json.Opcoes), lido);
             cfg = mesclado.Deserialize<AppConfig>(Json.Opcoes) ?? padrao;
         }
+        // A versão Python vinha com a pasta das justificativas no Documentos do computador
+        // (C:\Users\...\TEC_CURSOS\...). O certo é a mesma pasta na rede.
+        cfg.Caminhos["justificativas_json_dir"] = CaminhoNaRede(cfg.P("justificativas_json_dir"));
         // A versão Python ativava "Chrome"; agora a janela é a do WhatsApp, em qualquer navegador.
         if (string.IsNullOrWhiteSpace(cfg.Whatsapp.JanelaTitulo) || cfg.Whatsapp.JanelaTitulo.Trim().Equals("Chrome", StringComparison.OrdinalIgnoreCase))
             cfg.Whatsapp.JanelaTitulo = "WhatsApp";
@@ -162,6 +165,16 @@ public class AppConfig
             Log.Erro($"importar configuração da versão anterior: {e.Message}");
             return false;
         }
+    }
+
+    /// <summary>"C:\Users\X\Documents\TEC_CURSOS\Pedagógico\..." vira "\\servidortec\TEC_CURSOS\Pedagógico\...".</summary>
+    public static string CaminhoNaRede(string caminho)
+    {
+        if (string.IsNullOrWhiteSpace(caminho)) return caminho;
+        var m = System.Text.RegularExpressions.Regex.Match(caminho,
+            @"^[A-Za-z]:\\Users\\[^\\]+\\(?:Documents|Documentos)\\TEC_CURSOS\\(.*)$",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        return m.Success ? @"\\servidortec\TEC_CURSOS\" + m.Groups[1].Value : caminho;
     }
 
     private static string? LerPastaLocal()

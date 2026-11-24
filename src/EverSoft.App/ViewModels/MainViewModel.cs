@@ -394,12 +394,29 @@ public partial class MainViewModel : ObservableObject
             Status("Os justificados não foram enviados; a lista ficou como estava.", "#F59E0B");
             return;
         }
+        string aviso;
         int qtd = 0;
-        try { qtd = Nucleo.GravarJsonJustificativas(m.Codigo); }
-        catch (Exception e) { Log.Erro($"JSON de justificativas: {e.Message}"); Status("Não foi possível gravar o JSON: " + e.Message, "#DC2626"); }
+        try
+        {
+            var j = Nucleo.GravarJsonJustificativasDetalhado(m.Codigo);
+            qtd = j.Gravados;
+            aviso = j.Arquivo is not null
+                ? $"Justificativas gravadas ({j.Gravados} aluno(s)) em:\n{j.Arquivo}"
+                : j.SemMatricula.Count > 0
+                    ? "Nenhum JSON de justificativas foi gravado."
+                    : "Nenhum JSON de justificativas foi gravado: nenhum aluno desta faixa tem justificativa preenchida.";
+            if (j.SemMatricula.Count > 0)
+                aviso += "\n\nFicaram de fora por não ter a matrícula encontrada:\n" + string.Join("\n", j.SemMatricula);
+        }
+        catch (Exception e)
+        {
+            Log.Erro($"JSON de justificativas: {e}");
+            aviso = "Não foi possível gravar o JSON das justificativas:\n" + e.Message;
+        }
         int n = Nucleo.LimparFaixa(m.Codigo);
         Justifica.Recarregar();
         Status($"Faixa {m.Codigo}: enviada ao grupo; {n} linha(s) removida(s); {qtd} justificativa(s) no JSON.");
+        await Janelas.Mensagem(aviso);
     }
 
     public async Task EditarLinhaJustifica(RegistroJustifica? atual)

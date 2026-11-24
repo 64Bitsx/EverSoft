@@ -187,22 +187,32 @@ public class Nucleo
     /// Grava as justificativas da faixa atual em "dd.MM.yy.json" (usado pela remoção de faltas).
     /// Só cria o arquivo se houver ao menos uma justificativa preenchida.
     /// </summary>
-    public int GravarJsonJustificativas(string codigoFaixa, DateOnly? dataRef = null)
+    public int GravarJsonJustificativas(string codigoFaixa, DateOnly? dataRef = null) =>
+        GravarJsonJustificativasDetalhado(codigoFaixa, dataRef).Gravados;
+
+    /// <summary>Resultado da gravação do JSON de justificativas, para mostrar onde ficou e quem ficou de fora.</summary>
+    public record ResultadoJsonJustificativas(int Gravados, string? Arquivo, List<string> SemJustificativa, List<string> SemMatricula);
+
+    public ResultadoJsonJustificativas GravarJsonJustificativasDetalhado(string codigoFaixa, DateOnly? dataRef = null)
     {
-        if (codigoFaixa == "") return 0;
+        var semJust = new List<string>();
+        var semMat = new List<string>();
+        if (codigoFaixa == "") return new(0, null, semJust, semMat);
         var registros = new List<Dictionary<string, string>>();
         var vistos = new HashSet<string>();
         foreach (var reg in Estado.Justifica)
         {
             if (Texto.NormalizarHorario(reg.Horario) != Texto.NormalizarHorario(codigoFaixa)) continue;
             string nome = reg.Nome.Trim();
+            if (nome == "") continue;
             string just = reg.Justificativa.Split('/', 2)[0].Trim();
-            if (nome == "" || just == "") continue;
+            if (just == "") { semJust.Add(nome); continue; }
             string codigo = Hub.MatriculaPorNome(nome).Trim();
-            if (codigo == "" || !vistos.Add(Texto.Norm(codigo))) continue;
+            if (codigo == "") { semMat.Add(nome); continue; }
+            if (!vistos.Add(Texto.Norm(codigo))) continue;
             registros.Add(new() { ["codigo"] = codigo, ["nome"] = nome, ["justificativa"] = just });
         }
-        if (registros.Count == 0) return 0;
+        if (registros.Count == 0) return new(0, null, semJust, semMat);
 
         string pasta = Cfg.P("justificativas_json_dir");
         if (pasta == "") throw new InvalidOperationException("Pasta dos JSONs de justificativas não está configurada.");
@@ -241,7 +251,7 @@ public class Nucleo
             };
         }
         Json.Salvar(destino, ordem.Select(k => porCodigo[k]).ToList());
-        return registros.Count;
+        return new(registros.Count, destino, semJust, semMat);
     }
 
     /// <summary>

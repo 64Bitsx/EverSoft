@@ -91,6 +91,9 @@ public class NucleoTests : IDisposable
         var json = JsonNode.Parse(File.ReadAllText(Path.Combine(_c.Cfg.P("justificativas_json_dir"), "23.11.26.json")))!.AsArray();
         Assert.Equal("101", json[0]!["codigo"]!.ToString());
         Assert.Equal("Consulta médica", json[0]!["justificativa"]!.ToString());
+        var det = n.GravarJsonJustificativasDetalhado(m.Codigo);
+        Assert.EndsWith("23.11.26.json", det.Arquivo);
+        Assert.Equal(new[] { "Bruno Reis" }, det.SemJustificativa);
 
         Assert.Equal(2, n.LimparFaixa(m.Codigo));
         Assert.Null(n.MensagemFaltosos(new DateTime(2026, 11, 23, 22, 0, 0)));

@@ -60,3 +60,13 @@ public class TextoTests
     public void NormalizarHorario_tira_espacos() =>
         Assert.Equal("13h00-15h00", Texto.NormalizarHorario("13H00 - 15H00"));
 }
+
+public class CaminhoNaRedeTests
+{
+    [Theory]
+    [InlineData(@"C:\Users\Ewerton\Documents\TEC_CURSOS\Pedagógico\Documentos\Excel\Justificativas", @"\\servidortec\TEC_CURSOS\Pedagógico\Documentos\Excel\Justificativas")]
+    [InlineData(@"\\servidortec\TEC_CURSOS\Pedagógico\Documentos\Excel\Justificativas", @"\\servidortec\TEC_CURSOS\Pedagógico\Documentos\Excel\Justificativas")]
+    [InlineData(@"D:\Outra\Pasta", @"D:\Outra\Pasta")]
+    public void Pasta_das_justificativas_do_Python_vai_para_a_rede(string antes, string depois) =>
+        Assert.Equal(depois, EverSoft.Core.Configuracao.AppConfig.CaminhoNaRede(antes));
+}

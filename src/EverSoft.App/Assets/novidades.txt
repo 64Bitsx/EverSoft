@@ -1,3 +1,7 @@
+## V2.4
+- Justificativas: o JSON do dia (dd.mm.aa.json, com matrícula, nome e a justificativa antes da /) agora vai sempre para a pasta da rede \\servidortec\TEC_CURSOS\Pedagógico\Documentos\Excel\Justificativas. Se a configuração vinda da versão Python apontava para os Documentos do computador, ela é corrigida sozinha.
+- Depois de enviar os justificados, aparece uma mensagem dizendo onde o JSON foi gravado e quem ficou de fora.
+
 ## V2.3
 - Preenche justificados: a aba Justifica já abre com a faixa de horário do relógio do computador selecionada.
 
