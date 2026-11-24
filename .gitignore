@@ -3,3 +3,11 @@ obj/
 .vs/
 *.user
 TestResults/
+
+# Nunca versionar planilhas, JSONs ou dados de alunos (só as amostras fictícias dos testes)
+*.xls
+*.xlsx
+*.xlsm
+dados_app*/
+*.json
+!tests/EverSoft.Tests/Amostras/*.xls
