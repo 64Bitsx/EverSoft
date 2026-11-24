@@ -115,7 +115,7 @@ se não for, ativa de novo, e se não conseguir, **para o envio** em vez de digi
 ## Próximas etapas
 
 3. Continuar o WhatsApp: boletins (com o Boletim.png do caminho configurado) e disparo da aba MSG
-4. Remover faltas no Sistema Escola com Playwright
+4. Remover faltas no Sistema Escola
 5. Executável (`EverSoft.exe`) e instalador
 
 ## Guia rápido: C# para quem sabe Python
