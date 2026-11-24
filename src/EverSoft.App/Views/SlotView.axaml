@@ -38,6 +38,9 @@
         <Style Selector="DataGridRow" x:DataType="vm:LinhaVM">
           <Setter Property="Background" Value="{Binding FundoLinha}"/>
         </Style>
+        <Style Selector="DataGridRow:selected /template/ Rectangle#BackgroundRectangle" x:DataType="vm:LinhaVM">
+          <Setter Property="Fill" Value="{Binding FundoSelecionado}"/>
+        </Style>
         <Style Selector="Button.sistema">
           <Setter Property="Padding" Value="0"/><Setter Property="Width" Value="30"/><Setter Property="Height" Value="24"/>
           <Setter Property="Background" Value="#E0F2FE"/><Setter Property="CornerRadius" Value="6"/>
@@ -73,7 +76,18 @@
         <DataGridTextColumn Header="NOME" Binding="{Binding Nome}" IsReadOnly="True" Width="SizeToCells" MinWidth="160"/>
         <DataGridTextColumn Header="MATÉRIA" Binding="{Binding Materia}" IsReadOnly="True" Width="SizeToCells" MinWidth="90"/>
         <DataGridTextColumn Header="AULA" Binding="{Binding Aula}" IsReadOnly="True" Width="SizeToCells" MinWidth="74"/>
-        <DataGridTextColumn Header="ÚLTIMA" Binding="{Binding Ultima}" IsReadOnly="True" Width="SizeToCells" MinWidth="96"/>
+        <DataGridTemplateColumn Header="ÚLTIMA" Width="SizeToCells" MinWidth="96" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:LinhaVM">
+              <Panel>
+                <TextBlock Text="{Binding Ultima}" VerticalAlignment="Center" Margin="12,0" IsVisible="{Binding !UltimaVermelha}"/>
+                <Border Background="#E5383B" CornerRadius="4" Margin="4,3" Padding="8,0" IsVisible="{Binding UltimaVermelha}">
+                  <TextBlock Text="{Binding Ultima}" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                </Border>
+              </Panel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
         <DataGridTextColumn Header="A PAGAR" Binding="{Binding APagar}" IsReadOnly="True" Width="SizeToCells" MinWidth="64"/>
         <DataGridTemplateColumn Header="SIT" Width="96" IsReadOnly="True">
           <DataGridTemplateColumn.CellTemplate>

@@ -19,6 +19,10 @@ public record LinhaAluno
     /// <summary>"X" quando o aluno tem reposição pendente.</summary>
     public string R { get; init; } = "";
     public string Ultima { get; init; } = "";
+    /// <summary>Dias desde a última aula (null se não há data).</summary>
+    public int? DiasSemAula { get; init; }
+    /// <summary>Mais de 30 dias sem vir: a célula ÚLTIMA fica vermelha.</summary>
+    public bool SumidoHaMuitoTempo => DiasSemAula > 30;
     public string APagar { get; init; } = "";
     public string Sit { get; init; } = "";
     public string Inicio { get; init; } = "";
@@ -39,13 +43,15 @@ public record LinhaAluno
             Materia = hub.MateriaAtual(mat),
             Aula = hub.AulaAtual(mat),
             Ultima = hub.UltimaPresenca(mat, hoje),
+            DiasSemAula = hub.DiasDesdeUltimaPresenca(mat, hoje),
             APagar = hub.APagar(mat),
         };
         if (nome == "") return linha;
         var (pratica, apostila) = hub.BloqueioFlags(nome);
         string sit = hub.Situacao(nome);
-        // Quem está no Cap 2 mostra a data em que entrou no Cap 2; os demais, a Base Prepara.
-        string inicio = (EhCap2(sit) ? inicioCap2?.Invoke(nome) : null) ?? hub.Inicio(nome);
+        // Quem já passou pelo Cap 2 mostra a data em que entrou nele (mesmo que o status mude depois);
+        // os demais, a Base Prepara.
+        string inicio = inicioCap2?.Invoke(nome) ?? hub.Inicio(nome);
         return linha with
         {
             Pratica = pratica,

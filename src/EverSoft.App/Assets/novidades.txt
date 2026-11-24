@@ -1,0 +1,15 @@
+## V2.2
+- A linha laranja de quem está sem status continua laranja quando o aluno é selecionado.
+- A data de início do Cap 2 não some mais quando o status muda depois (OK, Atrasado...).
+- Última aula há mais de 30 dias: a célula ÚLTIMA fica vermelha, com os dias.
+- O EverSoft passa a rodar de C:\EverSoft (na primeira vez ele se copia para lá).
+- Atualização automática: ao abrir, e a cada 1 minuto, compara com o EverSoft.exe da rede.
+- Configurações: linha para escolher o EverSoft.exe da rede usado na atualização.
+- Esta janela de novidades aparece sempre que uma versão nova é aberta.
+
+## V2.1
+- Botão do Sistema Escola em cada aluno, antes da matrícula.
+- Matéria e A Pagar no tamanho do conteúdo.
+- Aluno sem status com a linha laranja; Adiantado roxo; Capítulos preto com letra branca.
+- Início do Cap 2 guardado em inicio_cap2.json.
+- Botão "Copiar nome e telefones" no painel do aluno.

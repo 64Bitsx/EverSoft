@@ -29,10 +29,67 @@ public partial class MainWindow : Window, IJanelas
         _vm = new MainViewModel(nucleo ?? new Nucleo(AppConfig.Carregar())) { Janelas = this };
         DataContext = _vm;
         Opened += async (_, _) => { if (IniciarAoAbrir) await _vm.IniciarAsync(); };
-        Closing += (_, _) => { _vm.Encerrar(); _vm.Nucleo.Salvar(); };
+        Closing += (_, _) => { if (_encerrado) return; _vm.Encerrar(); _vm.Nucleo.Salvar(); };
     }
 
     public MainViewModel ViewModel => _vm;
+    private bool _encerrado;
+
+    // ------------------------------------------------------------------ atualização
+    private DispatcherTimer? _timerAtualizacao;
+    private bool _perguntando;
+    private DateTime? _versaoRecusada;
+
+    /// <summary>Confere a cada minuto se o EverSoft.exe da rede ficou mais novo e pergunta se quer atualizar.</summary>
+    public void VerificarAtualizacoesACadaMinuto()
+    {
+        _timerAtualizacao = new DispatcherTimer { Interval = TimeSpan.FromMinutes(1) };
+        _timerAtualizacao.Tick += async (_, _) => await ConferirAtualizacao();
+        _timerAtualizacao.Start();
+    }
+
+    private async Task ConferirAtualizacao()
+    {
+        if (_perguntando) return;
+        string rede = _vm.Nucleo.Cfg.ExecutavelAtualizacao;
+        bool nova = await Task.Run(() => Atualizador.TemVersaoNova(Atualizacao.ExeInstalado, rede));
+        if (!nova) return;
+        var data = Atualizador.DataDoExecutavel(rede);
+        if (data == _versaoRecusada) return;           // já disse "não" para esta versão
+        _perguntando = true;
+        try
+        {
+            bool sim = await Confirmar($"Há uma versão nova do EverSoft na rede (de {data:dd/MM/yyyy HH:mm}).\n\n" +
+                                       "Quer atualizar agora? O EverSoft vai fechar e abrir de novo, já atualizado, " +
+                                       "e vai mostrar o que mudou.");
+            if (!sim) { _versaoRecusada = data; return; }
+            await AtualizarAgora(rede);
+        }
+        finally { _perguntando = false; }
+    }
+
+    private async Task AtualizarAgora(string rede)
+    {
+        _vm.Encerrar();
+        _vm.Nucleo.Salvar();
+        var tela = new SplashWindow("Atualização: baixando a versão mais nova do EverSoft...");
+        tela.Show();
+        try
+        {
+            await Task.Run(() => Atualizador.Instalar(rede, Atualizacao.ExeInstalado));
+            Atualizacao.AbrirInstalado();
+            _encerrado = true;
+            tela.Close();
+            (Avalonia.Application.Current?.ApplicationLifetime as Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime)?.Shutdown();
+        }
+        catch (Exception e)
+        {
+            Log.Erro("atualizar: " + e);
+            tela.Close();
+            await Mensagem("Não foi possível atualizar agora:\n" + e.Message + "\n\nO EverSoft continua aberto na versão atual.");
+            await _vm.IniciarAsync();   // religa a sincronia automática
+        }
+    }
 
     /// <summary>Falso quando a abertura já foi feita atrás da tela de carregamento (App.axaml.cs).</summary>
     public bool IniciarAoAbrir { get; set; } = true;
@@ -224,6 +281,8 @@ public partial class MainWindow : Window, IJanelas
         var janela = d.Campo(cfg.Whatsapp.JanelaTitulo);
         d.Rotulo("Caminho do nircmd.exe (vazio = ao lado do EverSoft.exe, no PATH ou no Windows)");
         var nircmd = d.Campo(cfg.Whatsapp.Nircmd);
+        d.Rotulo("EverSoft.exe da rede usado na atualização (compara a data de modificação)");
+        var exeAtualizacao = d.Campo(cfg.ExecutavelAtualizacao);
         d.Rotulo("Contagem antes de começar o envio (segundos)");
         var contagem = d.Campo(cfg.Whatsapp.ContagemRegressiva.ToString());
 
@@ -242,6 +301,7 @@ public partial class MainWindow : Window, IJanelas
             cfg.Whatsapp.JanelaTitulo = string.IsNullOrWhiteSpace(janela.Text) ? "WhatsApp" : janela.Text.Trim();
             cfg.Whatsapp.Nircmd = (nircmd.Text ?? "").Trim();
             cfg.Whatsapp.ContagemRegressiva = cont;
+            cfg.ExecutavelAtualizacao = (exeAtualizacao.Text ?? "").Trim();
             d.Fechar(true);
         }, "verde");
         await d.ShowDialog(this);

@@ -70,6 +70,8 @@ public class AppConfig
     /// o app converte para JSON sozinho e relê. false = só pelos botões Automação TEC / Sincronia.
     /// </summary>
     public bool SincroniaAutomatica { get; set; } = true;
+    /// <summary>EverSoft.exe da rede usado para saber se há versão nova (compara a data de modificação).</summary>
+    public string ExecutavelAtualizacao { get; set; } = @"\\servidortec\TEC_CURSOS\Pedagógico\Ewerton\EverSoft\EverSoft.exe";
 
     // ------------------------------------------------------------------ caminhos derivados
     /// <summary>Caminho configurado, sem espaços ou quebras de linha sobrando.</summary>

@@ -52,7 +52,7 @@ Tudo o que o app **sabe fazer**, sem a parte visual ainda:
 **Compatível com a versão Python:** lê o mesmo `config.json`, o mesmo `estado.json` e os mesmos
 JSONs espelho. Dá para usar as duas versões em paralelo durante a transição.
 
-**74 testes automáticos** conferem as regras, usando planilhas fictícias criadas na hora.
+**80 testes automáticos** conferem as regras, usando planilhas fictícias criadas na hora.
 Vários resultados esperados foram tirados rodando o próprio `EverSoft.py`.
 
 **Testado com as planilhas reais:** a Automação TEC, a Sincronia e a montagem das 9 abas de horário
@@ -111,6 +111,18 @@ se não for, ativa de novo, e se não conseguir, **para o envio** em vez de digi
 - **Enviar justificados** (aba Justifica): manda a mensagem da faixa ao grupo configurado; só depois de enviada
   as justificativas vão para o JSON e a faixa é limpa.
 - Uma janelinha no canto (que não rouba o foco) mostra o progresso e tem o botão **Parar**.
+
+## Instalação e atualização automática
+
+- Aberto pela rede (ou de qualquer outro lugar), o `EverSoft.exe` se copia para **C:\EverSoft** e abre de lá.
+- Ao abrir de C:\EverSoft, compara a **data de modificação** com o EverSoft.exe da rede
+  (Configurações > "EverSoft.exe da rede usado na atualização"). Se o da rede for mais novo, mostra a tela de
+  atualização, copia e reabre.
+- Com o programa aberto, confere a cada 1 minuto e pergunta se quer atualizar.
+- Cada versão traz suas novidades em `src/EverSoft.App/Assets/novidades.txt` (seção `## VX.X`), mostradas
+  uma vez na primeira abertura da versão. **Ao lançar uma versão: suba o `<Version>` no
+  `EverSoft.App.csproj` e escreva a seção nova no novidades.txt.**
+- Rodando pelo Visual Studio, nada disso acontece (só vale para o .exe publicado).
 
 ## Próximas etapas
 

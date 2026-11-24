@@ -51,13 +51,16 @@ public partial class LinhaVM : ObservableObject
     /// <summary>Aluno sem status fica com a linha inteira laranja.</summary>
     public bool SemStatus => !Vazia && Dados.Nome != "" && string.IsNullOrWhiteSpace(Dados.Sit);
     public IBrush FundoLinha => SemStatus ? Brush.Parse("#FDBA74") : Brushes.Transparent;
+    /// <summary>Cor da linha selecionada: cinza-claro, ou laranja mais forte para quem está sem status.</summary>
+    public IBrush FundoSelecionado => SemStatus ? Brush.Parse("#FB923C") : Brush.Parse("#E5E7EB");
+    public bool UltimaVermelha => Dados.SumidoHaMuitoTempo;
 
     [RelayCommand] private void AbrirSistema() => _dono.AbrirSistemaDaLinha(this);
 
     partial void OnDadosChanged(LinhaAluno value)
     {
         foreach (var p in new[] { nameof(Nome), nameof(Materia), nameof(Aula), nameof(Pratica), nameof(Apostila), nameof(R),
-                     nameof(Ultima), nameof(APagar), nameof(Sit), nameof(Inicio), nameof(TemComentario), nameof(FundoSit), nameof(TextoSit), nameof(SemStatus), nameof(FundoLinha) })
+                     nameof(Ultima), nameof(APagar), nameof(Sit), nameof(Inicio), nameof(TemComentario), nameof(FundoSit), nameof(TextoSit), nameof(SemStatus), nameof(FundoLinha), nameof(FundoSelecionado), nameof(UltimaVermelha) })
             OnPropertyChanged(p);
     }
 

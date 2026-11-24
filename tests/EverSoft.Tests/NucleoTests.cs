@@ -158,9 +158,12 @@ public class NucleoTests : IDisposable
         depois.RegistrarStatus("Ana Lima", "", caps: new[] { false, true });
         Assert.Equal("23/11/2026", depois.Linha("101").Inicio);
 
-        // saiu do Cap 2: volta a mostrar a Base Prepara
+        // outros status não mexem na data de início
         depois.RegistrarStatus("Ana Lima", "", ok: true);
-        Assert.Equal(antes, depois.Linha("101").Inicio);
+        Assert.Equal("23/11/2026", depois.Linha("101").Inicio);
+        depois.RegistrarStatus("Ana Lima", "", atrasado: true);
+        Assert.Equal("23/11/2026", depois.Linha("101").Inicio);
+        Assert.NotEqual("23/11/2026", antes);
     }
 
     [Fact]

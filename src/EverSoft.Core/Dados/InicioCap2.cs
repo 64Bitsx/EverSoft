@@ -6,8 +6,8 @@ namespace EverSoft.Core.Dados;
 /// <summary>
 /// Data em que cada aluno entrou no Cap 2 (arquivo inicio_cap2.json na pasta de dados do app).
 /// Quando um aluno recebe o status "Cap 2" pela primeira vez, a data do dia é guardada;
-/// se ele já estiver no arquivo, a data original fica. A coluna INÍCIO usa essa data para quem
-/// está no Cap 2; os demais continuam vindo da Base Prepara.
+/// se ele já estiver no arquivo, a data original fica. Nenhum outro status muda essa data.
+/// A coluna INÍCIO usa essa data para quem tem registro; os demais continuam vindo da Base Prepara.
 /// </summary>
 public class InicioCap2
 {

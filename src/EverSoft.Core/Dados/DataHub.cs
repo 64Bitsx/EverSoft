@@ -199,10 +199,16 @@ public class DataHub
     /// <summary>"Há 3 dias" desde a última presença.</summary>
     public string UltimaPresenca(string mat, DateOnly hoje)
     {
-        var d = Texto.ParseData(Buscar("acomp", mat, 1, 7));
-        if (d is null) return "";
-        int n = hoje.DayNumber - d.Value.DayNumber;
+        int? n = DiasDesdeUltimaPresenca(mat, hoje);
+        if (n is null) return "";
         return n == 1 ? "Há 1 dia" : $"Há {n} dias";
+    }
+
+    /// <summary>Dias desde a última aula (null se não há data).</summary>
+    public int? DiasDesdeUltimaPresenca(string mat, DateOnly hoje)
+    {
+        var d = Texto.ParseData(Buscar("acomp", mat, 1, 7));
+        return d is null ? null : hoje.DayNumber - d.Value.DayNumber;
     }
 
     public (string Pratica, string Apostila) BloqueioFlags(string nome) => (B("bloqueio", nome, 1, 2), B("bloqueio", nome, 1, 3));
