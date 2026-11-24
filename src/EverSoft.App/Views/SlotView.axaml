@@ -50,14 +50,11 @@
         <DataGridTextColumn Header="PC" Binding="{Binding Pc}" IsReadOnly="True" Width="40"/>
         <DataGridCheckBoxColumn Header="J" Binding="{Binding J}" Width="40"/>
         <DataGridTextColumn Header="MATRÍC." Binding="{Binding Matricula}" Width="96" FontWeight="Bold"/>
-        <DataGridTextColumn Header="NOME" Binding="{Binding Nome}" IsReadOnly="True" Width="2*" MinWidth="230"/>
-        <DataGridTextColumn Header="MATÉRIA" Binding="{Binding Materia}" IsReadOnly="True" Width="1.2*" MinWidth="140"/>
-        <DataGridTextColumn Header="AULA" Binding="{Binding Aula}" IsReadOnly="True" Width="74"/>
-        <DataGridTextColumn Header="PRÁT." Binding="{Binding Pratica}" IsReadOnly="True" Width="62"/>
-        <DataGridTextColumn Header="APOST." Binding="{Binding Apostila}" IsReadOnly="True" Width="68"/>
-        <DataGridTextColumn Header="R" Binding="{Binding R}" IsReadOnly="True" Width="34"/>
-        <DataGridTextColumn Header="ÚLTIMA" Binding="{Binding Ultima}" IsReadOnly="True" Width="96"/>
-        <DataGridTextColumn Header="A PAGAR" Binding="{Binding APagar}" IsReadOnly="True" Width="92"/>
+        <DataGridTextColumn Header="NOME" Binding="{Binding Nome}" IsReadOnly="True" Width="SizeToCells" MinWidth="160"/>
+        <DataGridTextColumn Header="MATÉRIA" Binding="{Binding Materia}" IsReadOnly="True" Width="*" MinWidth="150"/>
+        <DataGridTextColumn Header="AULA" Binding="{Binding Aula}" IsReadOnly="True" Width="SizeToCells" MinWidth="74"/>
+        <DataGridTextColumn Header="ÚLTIMA" Binding="{Binding Ultima}" IsReadOnly="True" Width="SizeToCells" MinWidth="96"/>
+        <DataGridTextColumn Header="A PAGAR" Binding="{Binding APagar}" IsReadOnly="True" Width="SizeToCells" MinWidth="100"/>
         <DataGridTemplateColumn Header="SIT" Width="96" IsReadOnly="True">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:LinhaVM">
@@ -67,8 +64,16 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTextColumn Header="INÍCIO" Binding="{Binding Inicio}" IsReadOnly="True" Width="82"/>
-        <DataGridTextColumn Header="COM." Binding="{Binding Coment}" IsReadOnly="True" Width="58"/>
+        <DataGridTextColumn Header="INÍCIO" Binding="{Binding Inicio}" IsReadOnly="True" Width="SizeToCells" MinWidth="80"/>
+        <DataGridTemplateColumn Header="COMENTÁRIO" Width="118" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:LinhaVM">
+              <Border Background="#16A34A" CornerRadius="10" Margin="6,4" Padding="8,0" IsVisible="{Binding TemComentario}">
+                <TextBlock Text="✔ SIM" Foreground="White" FontWeight="Bold" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+              </Border>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
       </DataGrid.Columns>
     </DataGrid>
   </DockPanel>

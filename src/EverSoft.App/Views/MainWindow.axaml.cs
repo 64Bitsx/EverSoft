@@ -27,11 +27,14 @@ public partial class MainWindow : Window, IJanelas
         InitializeComponent();
         _vm = new MainViewModel(nucleo ?? new Nucleo(AppConfig.Carregar())) { Janelas = this };
         DataContext = _vm;
-        Opened += async (_, _) => await _vm.IniciarAsync();
+        Opened += async (_, _) => { if (IniciarAoAbrir) await _vm.IniciarAsync(); };
         Closing += (_, _) => { _vm.Encerrar(); _vm.Nucleo.Salvar(); };
     }
 
     public MainViewModel ViewModel => _vm;
+
+    /// <summary>Falso quando a abertura já foi feita atrás da tela de carregamento (App.axaml.cs).</summary>
+    public bool IniciarAoAbrir { get; set; } = true;
 
     private void Sair_Click(object? sender, RoutedEventArgs e) => Close();
 
@@ -197,6 +200,7 @@ public partial class MainWindow : Window, IJanelas
     public async Task<bool> Configuracoes(AppConfig cfg)
     {
         var d = new Dialogo("Configurações", 760);
+        d.ComRolagem();
         d.Titulo("Arquivos e pastas");
         var campos = new Dictionary<string, TextBox>();
         foreach (var (chave, rotulo) in RotulosCaminhos)
@@ -256,28 +260,53 @@ public partial class MainWindow : Window, IJanelas
     };
 
     /// <summary>Janela com o andamento da Automação TEC / Sincronia.</summary>
+    /// <summary>
+    /// Automação TEC / Sincronia: mostra a tela de carregamento enquanto trabalha e some sozinha.
+    /// A janela com o relatório só aparece quando algo deu errado.
+    /// </summary>
     public async Task Tarefa(string titulo, Func<Action<string>, Task> trabalho)
     {
+        var linhas = new List<string>();
+        var problemas = new List<string>();
+        var splash = new SplashWindow(titulo + "...") { WindowStartupLocation = WindowStartupLocation.CenterOwner };
+        void Escrever(string m)
+        {
+            lock (linhas)
+            {
+                linhas.Add(m);
+                if (EhProblema(m)) problemas.Add(m);
+            }
+            Dispatcher.UIThread.Post(() => splash.Mensagem = $"{titulo}: {m.Trim()}");
+        }
+        splash.Opened += async (_, _) =>
+        {
+            try { await trabalho(Escrever); }
+            catch (Exception e) { Log.Erro(e.ToString()); Escrever("ERRO: " + e.Message); }
+            finally { splash.Close(); }
+        };
+        await splash.ShowDialog(this);
+        if (problemas.Count == 0) return;
+
         var log = new TextBox
         {
             IsReadOnly = true, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, Height = 360,
             FontFamily = new FontFamily("Consolas,Menlo,monospace"), FontSize = 12, Background = Brush.Parse("#0B1B33"), Foreground = Brushes.White,
+            Text = string.Join(Environment.NewLine, linhas),
         };
-        var d = new Dialogo(titulo, 640);
+        var d = new Dialogo($"{titulo}: terminou com {problemas.Count} problema(s)", 680);
+        d.Texto("Algumas planilhas não puderam ser lidas. Veja abaixo o que aconteceu:", "#B91C1C");
         d.Add(log);
-        var fechar = d.Botao("Fechar", () => d.Fechar(true), "azul");
-        fechar.IsEnabled = false;
-        void Escrever(string m) => Dispatcher.UIThread.Post(() =>
-        {
-            log.Text += m + Environment.NewLine;
-            log.CaretIndex = log.Text.Length;
-        });
-        d.Opened += async (_, _) =>
-        {
-            try { await trabalho(Escrever); }
-            catch (Exception e) { Log.Erro(e.ToString()); Escrever("ERRO: " + e.Message); }
-            finally { fechar.IsEnabled = true; }
-        };
+        d.Botao("Fechar", () => d.Fechar(true), "azul").IsDefault = true;
         await d.ShowDialog(this);
+    }
+
+    /// <summary>Linhas do relatório que indicam erro (arquivo sumido, aba faltando, falha de leitura).</summary>
+    public static bool EhProblema(string linha)
+    {
+        var l = linha.Trim();
+        return l.StartsWith("ERRO", StringComparison.OrdinalIgnoreCase)
+            || l.StartsWith("NÃO ENCONTRADO", StringComparison.OrdinalIgnoreCase)
+            || l.StartsWith("Erro ao", StringComparison.OrdinalIgnoreCase)
+            || (l.StartsWith("Aba ") && l.EndsWith("não existe."));
     }
 }

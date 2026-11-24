@@ -63,36 +63,42 @@
     <Setter Property="Foreground" Value="White"/>
   </Style>
 
-  <!-- Abas em "chips" coloridos -->
+  <!-- Abas em "chips" coloridos. A aba aberta ganha moldura amarela e fica opaca; as outras ficam apagadas. -->
   <Style Selector="ListBox.abas">
     <Setter Property="Background" Value="Transparent"/>
   </Style>
   <Style Selector="ListBox.abas ListBoxItem">
     <Setter Property="Padding" Value="0"/>
-    <Setter Property="Margin" Value="0,0,6,0"/>
+    <Setter Property="Margin" Value="0,0,8,8"/>
+    <Setter Property="Opacity" Value="0.6"/>
   </Style>
-  <!-- Aba aberta em destaque; as outras ficam mais apagadas -->
-  <Style Selector="ListBox.abas ListBoxItem">
-    <Setter Property="Opacity" Value="0.55"/>
+  <Style Selector="ListBox.abas ListBoxItem /template/ ContentPresenter">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="CornerRadius" Value="20"/>
+    <Setter Property="BorderThickness" Value="3"/>
+    <Setter Property="BorderBrush" Value="Transparent"/>
+    <Setter Property="Padding" Value="0"/>
+  </Style>
+  <Style Selector="ListBox.abas ListBoxItem:pointerover">
+    <Setter Property="Opacity" Value="0.8"/>
+  </Style>
+  <Style Selector="ListBox.abas ListBoxItem:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="Transparent"/>
   </Style>
   <Style Selector="ListBox.abas ListBoxItem:selected">
     <Setter Property="Opacity" Value="1"/>
   </Style>
-  <Style Selector="ListBox.abas ListBoxItem:pointerover">
-    <Setter Property="Opacity" Value="0.85"/>
-  </Style>
   <Style Selector="ListBox.abas ListBoxItem:selected /template/ ContentPresenter">
     <Setter Property="Background" Value="Transparent"/>
-  </Style>
-  <Style Selector="ListBox.abas ListBoxItem:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderBrush" Value="#FACC15"/>
   </Style>
 
   <Style Selector="DataGrid">
     <Setter Property="Background" Value="{StaticResource Cartao}"/>
     <Setter Property="RowBackground" Value="White"/>
-    <Setter Property="GridLinesVisibility" Value="Horizontal"/>
-    <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource Linha}"/>
+    <Setter Property="GridLinesVisibility" Value="All"/>
+    <Setter Property="HorizontalGridLinesBrush" Value="#CBD5E1"/>
+    <Setter Property="VerticalGridLinesBrush" Value="#CBD5E1"/>
     <Setter Property="FontSize" Value="13"/>
   </Style>
   <Style Selector="DataGridColumnHeader">
@@ -101,5 +107,17 @@
     <Setter Property="FontSize" Value="10.5"/>
     <Setter Property="FontWeight" Value="Bold"/>
     <Setter Property="Padding" Value="6,0,0,0"/>
+  </Style>
+
+  <!-- Linha selecionada: cinza-claro, texto escuro -->
+  <Style Selector="DataGridRow:selected /template/ Rectangle#BackgroundRectangle">
+    <Setter Property="Fill" Value="#E5E7EB"/>
+    <Setter Property="Opacity" Value="1"/>
+  </Style>
+  <Style Selector="DataGridRow:selected">
+    <Setter Property="Foreground" Value="#0F172A"/>
+  </Style>
+  <Style Selector="DataGridCell:current /template/ Grid#FocusVisual">
+    <Setter Property="IsVisible" Value="False"/>
   </Style>
 </Styles>

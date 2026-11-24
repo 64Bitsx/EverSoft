@@ -52,7 +52,7 @@ Tudo o que o app **sabe fazer**, sem a parte visual ainda:
 **Compatível com a versão Python:** lê o mesmo `config.json`, o mesmo `estado.json` e os mesmos
 JSONs espelho. Dá para usar as duas versões em paralelo durante a transição.
 
-**57 testes automáticos** conferem as regras, usando planilhas fictícias criadas na hora.
+**64 testes automáticos** conferem as regras, usando planilhas fictícias criadas na hora.
 Vários resultados esperados foram tirados rodando o próprio `EverSoft.py`.
 
 **Testado com as planilhas reais:** a Automação TEC, a Sincronia e a montagem das 9 abas de horário

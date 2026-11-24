@@ -5,6 +5,7 @@
         x:Class="EverSoft.App.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         Title="{Binding Titulo}"
+        Icon="/Assets/eversoft-icon.ico"
         Width="1400" Height="860" MinWidth="1100" MinHeight="680"
         WindowStartupLocation="CenterScreen" WindowState="Maximized">
 
@@ -42,21 +43,20 @@
     <v:PainelAluno DockPanel.Dock="Right" DataContext="{Binding Painel}" IsVisible="{Binding $parent[Window].((vm:MainViewModel)DataContext).MostrarPainel}" Width="280" Margin="0,10,12,10"/>
 
     <DockPanel Margin="12,8,10,8">
-      <!-- Barra de abas em "chips" -->
-      <ScrollViewer DockPanel.Dock="Top" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Margin="0,0,0,8">
-        <ListBox Classes="abas" ItemsSource="{Binding Abas}" SelectedItem="{Binding AbaSelecionada}">
-          <ListBox.ItemsPanel>
-            <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
-          </ListBox.ItemsPanel>
-          <ListBox.ItemTemplate>
-            <DataTemplate x:DataType="vm:AbaVM">
-              <Border Background="{Binding Cor}" CornerRadius="14" Padding="14,6">
-                <TextBlock Text="{Binding Titulo}" Foreground="{Binding CorTexto}" FontWeight="SemiBold" FontSize="13"/>
-              </Border>
-            </DataTemplate>
-          </ListBox.ItemTemplate>
-        </ListBox>
-      </ScrollViewer>
+      <!-- Barra de abas em "chips": quebra linha quando não cabe (sem barra de rolagem) -->
+      <ListBox DockPanel.Dock="Top" Classes="abas" ItemsSource="{Binding Abas}" SelectedItem="{Binding AbaSelecionada}"
+               Margin="0,2,0,4" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+        <ListBox.ItemsPanel>
+          <ItemsPanelTemplate><WrapPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+        </ListBox.ItemsPanel>
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:AbaVM">
+            <Border Background="{Binding Cor}" CornerRadius="17" Padding="18,8" MinWidth="96">
+              <TextBlock Text="{Binding Titulo}" Foreground="{Binding CorTexto}" FontWeight="Bold" FontSize="15" HorizontalAlignment="Center"/>
+            </Border>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
 
       <!-- Conteúdo da aba escolhida: cada tipo de ViewModel tem a sua tela -->
       <ContentControl Content="{Binding AbaSelecionada.Conteudo}">

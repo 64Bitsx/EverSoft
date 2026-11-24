@@ -17,22 +17,30 @@ public class Dialogo : Window
 
     public Dialogo(string titulo, double largura = 480)
     {
+        _area.Content = Corpo;
         Title = titulo;
         Width = largura;
         SizeToContent = SizeToContent.Height;
         CanResize = false;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         ShowInTaskbar = false;
+        Icon = SplashWindow.Icone();
         Content = new DockPanel
         {
             Margin = new Thickness(20),
             Children =
             {
                 Ancorar(new Border { Child = _botoes, Margin = new Thickness(0, 16, 0, 0) }, Dock.Bottom),
-                new ScrollViewer { Content = Corpo, MaxHeight = 640 },
+                _area,
             },
         };
     }
+
+    private readonly ContentControl _area = new();
+
+    /// <summary>Só a tela de Configurações (que é comprida) usa barra de rolagem.</summary>
+    public void ComRolagem(double alturaMaxima = 640) =>
+        _area.Content = new ScrollViewer { Content = Corpo, MaxHeight = alturaMaxima };
 
     private static Control Ancorar(Control c, Dock d) { DockPanel.SetDock(c, d); return c; }
 

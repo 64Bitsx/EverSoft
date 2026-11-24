@@ -40,7 +40,8 @@ public partial class LinhaVM : ObservableObject
     public string APagar => Dados.APagar;
     public string Sit => Dados.Sit;
     public string Inicio => Dados.Inicio;
-    public string Coment => Dados.Coment switch { true => "✔", false => "—", null => "" };
+    /// <summary>true quando o aluno tem comentário, conquista ou pontos na planilha Coments.</summary>
+    public bool TemComentario => Dados.Coment == true;
     public bool Vazia => string.IsNullOrWhiteSpace(Matricula);
 
     public IBrush FundoSit => LinhaAluno.CoresDaSituacao(Sit) is { } c ? Brush.Parse(c.Fundo) : Brushes.Transparent;
@@ -49,7 +50,7 @@ public partial class LinhaVM : ObservableObject
     partial void OnDadosChanged(LinhaAluno value)
     {
         foreach (var p in new[] { nameof(Nome), nameof(Materia), nameof(Aula), nameof(Pratica), nameof(Apostila), nameof(R),
-                     nameof(Ultima), nameof(APagar), nameof(Sit), nameof(Inicio), nameof(Coment), nameof(FundoSit), nameof(TextoSit) })
+                     nameof(Ultima), nameof(APagar), nameof(Sit), nameof(Inicio), nameof(TemComentario), nameof(FundoSit), nameof(TextoSit) })
             OnPropertyChanged(p);
     }
 
