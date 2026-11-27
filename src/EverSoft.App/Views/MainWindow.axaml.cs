@@ -94,7 +94,6 @@ public partial class MainWindow : Window, IJanelas
     /// <summary>Falso quando a abertura já foi feita atrás da tela de carregamento (App.axaml.cs).</summary>
     public bool IniciarAoAbrir { get; set; } = true;
 
-    private void Sair_Click(object? sender, RoutedEventArgs e) => Close();
 
     // ------------------------------------------------------------------ IJanelas
     public Task Mensagem(string texto) => Dialogo.Mensagem(this, texto);
@@ -151,7 +150,7 @@ public partial class MainWindow : Window, IJanelas
         d.Botao("Enviar", async () =>
         {
             if (await gravar((c.Text ?? "").Trim(), (con.Text ?? "").Trim(), (p.Text ?? "").Trim())) d.Fechar(true);
-        }, "verde");
+        }, "primaria");
         await d.ShowDialog(this);
         return d.Confirmado;
     }
@@ -165,7 +164,7 @@ public partial class MainWindow : Window, IJanelas
         d.Botao("Enviar", async () =>
         {
             if (await gravar(marcas.Select(m => m.IsChecked == true).ToArray())) d.Fechar(true);
-        }, "azul");
+        }, "primaria");
         await d.ShowDialog(this);
         return d.Confirmado;
     }
@@ -226,7 +225,7 @@ public partial class MainWindow : Window, IJanelas
                 Horario = (hor.Text ?? "").Trim(), Frequencia = (freq.Text ?? "").Trim(),
             };
             d.Fechar(true);
-        }, "verde");
+        }, "primaria");
         await d.ShowDialog(this);
         return resultado;
     }
@@ -251,7 +250,7 @@ public partial class MainWindow : Window, IJanelas
             d.Rotulo(rot);
             d.Add(new SelectableTextBlock { Text = val == "" ? "—" : val, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap });
         }
-        d.Botao("Fechar", () => d.Fechar(true), "azul").IsDefault = true;
+        d.Botao("Fechar", () => d.Fechar(true), "primaria").IsDefault = true;
         await d.ShowDialog(this);
     }
 
@@ -303,7 +302,7 @@ public partial class MainWindow : Window, IJanelas
             cfg.Whatsapp.ContagemRegressiva = cont;
             cfg.ExecutavelAtualizacao = (exeAtualizacao.Text ?? "").Trim();
             d.Fechar(true);
-        }, "verde");
+        }, "primaria");
         await d.ShowDialog(this);
         return d.Confirmado;
     }
@@ -367,7 +366,7 @@ public partial class MainWindow : Window, IJanelas
         var d = new Dialogo($"{titulo}: terminou com {problemas.Count} problema(s)", 680);
         d.Texto("Algumas planilhas não puderam ser lidas. Veja abaixo o que aconteceu:", "#B91C1C");
         d.Add(log);
-        d.Botao("Fechar", () => d.Fechar(true), "azul").IsDefault = true;
+        d.Botao("Fechar", () => d.Fechar(true), "primaria").IsDefault = true;
         await d.ShowDialog(this);
     }
 
@@ -389,7 +388,7 @@ public partial class MainWindow : Window, IJanelas
         Func<Action<string>, Action<int, int>, CancellationToken, Task<ResultadoEnvio>> trabalho)
     {
         using var cts = new CancellationTokenSource();
-        var texto = new TextBlock { Text = "Preparando...", TextWrapping = TextWrapping.Wrap, FontSize = 14, Foreground = Brush.Parse("#0F172A") };
+        var texto = new TextBlock { Text = "Preparando...", TextWrapping = TextWrapping.Wrap, FontSize = 14 };
         var barra = new ProgressBar { Minimum = 0, Maximum = 1, Height = 10, IsIndeterminate = true, Foreground = Brush.Parse("#14B8A6") };
         var parar = new Button { Content = "Parar envio", HorizontalAlignment = HorizontalAlignment.Right, MinWidth = 110, HorizontalContentAlignment = HorizontalAlignment.Center };
         parar.Classes.Add("vermelho");

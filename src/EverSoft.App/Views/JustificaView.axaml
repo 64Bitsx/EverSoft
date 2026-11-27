@@ -4,46 +4,57 @@
              x:Class="EverSoft.App.Views.JustificaView"
              x:DataType="vm:JustificaVM">
   <DockPanel>
-    <StackPanel DockPanel.Dock="Top" Margin="2,0,0,8">
-      <TextBlock Classes="titulo" Text="Justifica"/>
-      <TextBlock Classes="subtitulo" Text="Faltosos e justificativas do dia"/>
+    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="12" Margin="0,0,0,16">
+      <Border Width="46" Height="46" CornerRadius="14" Background="{DynamicResource Primaria}">
+        <PathIcon Data="{StaticResource IcPrancheta}" Width="22" Height="22" Foreground="{DynamicResource PrimariaTexto}"/>
+      </Border>
+      <StackPanel VerticalAlignment="Center" Spacing="2">
+        <TextBlock Classes="titulo" Text="Justifica"/>
+        <TextBlock Classes="subtitulo" Text="Faltosos e justificativas do dia"/>
+      </StackPanel>
     </StackPanel>
 
     <!-- Lado direito: escolha da faixa, prévia e envio -->
-    <Border DockPanel.Dock="Right" Classes="cartao" Width="380" Margin="10,0,0,0">
+    <Border DockPanel.Dock="Right" Classes="cartao" Width="400" Margin="16,0,0,0">
       <DockPanel>
         <StackPanel DockPanel.Dock="Top" Spacing="6">
           <TextBlock Classes="rotulo" Text="FAIXA DE HORÁRIO"/>
           <ComboBox ItemsSource="{Binding Faixas}" SelectedItem="{Binding Faixa}" HorizontalAlignment="Stretch"/>
           <TextBlock Classes="subtitulo" TextWrapping="Wrap"
                      Text="Já começa na faixa atual. Esqueceu de enviar uma faixa anterior? É só escolher aqui."/>
-          <TextBlock Text="{Binding Resumo}" FontWeight="SemiBold" Foreground="#1E293B" Margin="0,6,0,0"/>
+          <TextBlock Text="{Binding Resumo}" FontWeight="SemiBold" Foreground="{DynamicResource Texto}" Margin="0,6,0,0"/>
         </StackPanel>
         <StackPanel DockPanel.Dock="Bottom" Spacing="6" Margin="0,10,0,0">
-          <Button Classes="azul" Content="Enviar justificados" Command="{Binding EnviarCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="12,10"/>
-          <Button Content="Só copiar a mensagem" Command="{Binding CopiarMensagemCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+          <Button Classes="primaria" Command="{Binding EnviarCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="12,11">
+            <StackPanel Orientation="Horizontal" Spacing="8"><PathIcon Data="{StaticResource IcEnviar}"/><TextBlock Text="Enviar justificados ao grupo"/></StackPanel>
+          </Button>
+          <Button Command="{Binding CopiarMensagemCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">
+            <StackPanel Orientation="Horizontal" Spacing="8"><PathIcon Data="{StaticResource IcCopiar}"/><TextBlock Text="Só copiar a mensagem"/></StackPanel>
+          </Button>
         </StackPanel>
         <TextBox Text="{Binding Previa}" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" Margin="0,8,0,0"
-                 FontFamily="Consolas,Menlo,monospace" FontSize="12" Background="#F8FAFC"/>
+                 FontFamily="Consolas,Menlo,monospace" FontSize="12" Background="{DynamicResource Campo}"/>
       </DockPanel>
     </Border>
 
-    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
-      <Button Content="Adicionar linha" Command="{Binding AdicionarCommand}"/>
-      <Button Content="Editar linha" Command="{Binding EditarCommand}"/>
-      <Button Content="Remover linha" Command="{Binding RemoverCommand}"/>
+    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,12">
+      <Button Command="{Binding AdicionarCommand}"><StackPanel Orientation="Horizontal" Spacing="8"><PathIcon Data="{StaticResource IcMais}" Foreground="{DynamicResource Primaria}"/><TextBlock Text="Adicionar"/></StackPanel></Button>
+      <Button Command="{Binding EditarCommand}"><StackPanel Orientation="Horizontal" Spacing="8"><PathIcon Data="{StaticResource IcLapis}" Foreground="#2563EB"/><TextBlock Text="Editar"/></StackPanel></Button>
+      <Button Command="{Binding RemoverCommand}"><StackPanel Orientation="Horizontal" Spacing="8"><PathIcon Data="{StaticResource IcLixeira}" Foreground="#E5383B"/><TextBlock Text="Remover"/></StackPanel></Button>
     </StackPanel>
 
+    <Border Classes="cartao" Padding="0" ClipToBounds="True">
     <DataGrid ItemsSource="{Binding Linhas}" SelectedItem="{Binding Selecionada}" AutoGenerateColumns="False"
-              IsReadOnly="True" HeadersVisibility="Column" DoubleTapped="Grade_DoubleTapped" BorderBrush="#E2E8F0" BorderThickness="1">
+              IsReadOnly="True" HeadersVisibility="Column" DoubleTapped="Grade_DoubleTapped">
       <DataGrid.Columns>
-        <DataGridTextColumn Header="NOME" Binding="{Binding Registro.Nome}" Width="2*"/>
-        <DataGridTextColumn Header="JUSTIFICATIVA" Binding="{Binding Registro.Justificativa}" Width="2.4*"/>
+        <DataGridTextColumn Header="NOME" Binding="{Binding Registro.Nome}" Width="SizeToCells" MinWidth="170"/>
+        <DataGridTextColumn Header="JUSTIFICATIVA" Binding="{Binding Registro.Justificativa}" Width="*" MinWidth="200"/>
         <DataGridTextColumn Header="DATA" Binding="{Binding Data}" Width="104"/>
         <DataGridTextColumn Header="MATRÍCULA" Binding="{Binding Matricula}" Width="118"/>
         <DataGridTextColumn Header="HORÁRIO" Binding="{Binding Registro.Horario}" Width="130"/>
         <DataGridTextColumn Header="FREQUÊNCIA" Binding="{Binding Registro.Frequencia}" Width="124"/>
       </DataGrid.Columns>
     </DataGrid>
+    </Border>
   </DockPanel>
 </UserControl>

@@ -19,6 +19,12 @@ public partial class SlotVM : ObservableObject
     public ObservableCollection<LinhaVM> Linhas { get; } = new();
     [ObservableProperty] private LinhaVM? _selecionada;
     [ObservableProperty] private string _usados = "";
+    // Números dos cartões de resumo no topo da turma
+    [ObservableProperty] private int _qtdUsados;
+    [ObservableProperty] private int _qtdSemStatus;
+    [ObservableProperty] private int _qtdSumidos;
+    [ObservableProperty] private int _qtdComentario;
+    public int TotalPcs => Linhas.Count;
 
     public SlotVM(MainViewModel main, Slot slot)
     {
@@ -49,6 +55,12 @@ public partial class SlotVM : ObservableObject
             }
         }
         Usados = $"{Slot.Usados} PCs usados";
+        QtdUsados = Slot.Usados;
+        QtdSemStatus = Linhas.Count(l => l.SemStatus);
+        QtdSumidos = Linhas.Count(l => !l.Vazia && l.UltimaVermelha);
+        QtdComentario = Linhas.Count(l => !l.Vazia && l.TemComentario);
+        OnPropertyChanged(nameof(TotalPcs));
+        _main.AtualizarBadges();
         _montando = false;
         if (sel is not null) Selecionada = Linhas[sel.Value];
     }

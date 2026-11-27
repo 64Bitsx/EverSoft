@@ -19,6 +19,7 @@ public partial class App : Application
         {
             // Abre com a tela de carregamento (logo) enquanto confere a versão e lê as planilhas;
             // a janela principal só aparece quando tudo estiver pronto.
+            Tema.AplicarSalvo();
             var splash = new SplashWindow("Abrindo...");
             desktop.MainWindow = splash;
             splash.Opened += async (_, _) =>

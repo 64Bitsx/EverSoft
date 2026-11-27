@@ -25,9 +25,10 @@ public class Dialogo : Window
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         ShowInTaskbar = false;
         Icon = SplashWindow.Icone();
+        this.Bind(BackgroundProperty, this.GetResourceObservable("Superficie"));
         Content = new DockPanel
         {
-            Margin = new Thickness(20),
+            Margin = new Thickness(24),
             Children =
             {
                 Ancorar(new Border { Child = _botoes, Margin = new Thickness(0, 16, 0, 0) }, Dock.Bottom),
@@ -49,10 +50,18 @@ public class Dialogo : Window
         Add(new TextBlock { Text = texto.ToUpperInvariant(), Classes = { "rotulo" }, Margin = new Thickness(0, 6, 0, 0) });
 
     public TextBlock Titulo(string texto) =>
-        Add(new TextBlock { Text = texto, FontSize = 17, FontWeight = FontWeight.Bold, TextWrapping = TextWrapping.Wrap });
+        Add(Colorir(new TextBlock { Text = texto, FontSize = 18, FontWeight = FontWeight.Bold, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 4) }, null));
 
     public TextBlock Texto(string texto, string? cor = null) =>
-        Add(new TextBlock { Text = texto, TextWrapping = TextWrapping.Wrap, Foreground = Brush.Parse(cor ?? "#334155") });
+        Add(Colorir(new TextBlock { Text = texto, TextWrapping = TextWrapping.Wrap, FontSize = 13.5, LineHeight = 20 }, cor));
+
+    /// <summary>Cor fixa, ou a cor de texto do tema (acompanha claro/escuro).</summary>
+    private static TextBlock Colorir(TextBlock t, string? cor)
+    {
+        if (cor is not null) t.Foreground = Brush.Parse(cor);
+        else t.Bind(TextBlock.ForegroundProperty, t.GetResourceObservable("Texto"));
+        return t;
+    }
 
     public TextBox Campo(string valor = "", int linhas = 1, bool maiusculas = false)
     {
@@ -84,7 +93,7 @@ public class Dialogo : Window
     {
         var d = new Dialogo(titulo, 460);
         d.Texto(texto);
-        d.Botao("OK", () => d.Fechar(true), "azul").IsDefault = true;
+        d.Botao("OK", () => d.Fechar(true), "primaria").IsDefault = true;
         await d.ShowDialog(dono);
     }
 
@@ -93,7 +102,7 @@ public class Dialogo : Window
         var d = new Dialogo(titulo, 520);
         d.Texto(texto);
         d.Botao("Cancelar", () => d.Fechar(false)).IsCancel = true;
-        d.Botao("OK", () => d.Fechar(true), "azul").IsDefault = true;
+        d.Botao("OK", () => d.Fechar(true), "primaria").IsDefault = true;
         await d.ShowDialog(dono);
         return d.Confirmado;
     }

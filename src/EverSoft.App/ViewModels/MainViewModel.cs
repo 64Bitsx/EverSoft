@@ -28,8 +28,27 @@ public interface IJanelas
     Task<ResultadoEnvio?> Envio(string titulo, Func<Action<string>, Action<int, int>, CancellationToken, Task<ResultadoEnvio>> trabalho);
 }
 
-/// <summary>Uma aba da barra de cima (horários + Justifica, Agenda, Boletim, MSG).</summary>
-public record AbaVM(string Id, string Titulo, string Cor, string CorTexto, object Conteudo);
+/// <summary>Um item do menu lateral (horários + Justifica, Agenda, Boletim, MSG).</summary>
+public partial class AbaVM : ObservableObject
+{
+    public AbaVM(string id, string titulo, string subtitulo, string grupo, string cor, string icone, object conteudo)
+    {
+        Id = id; Titulo = titulo; Subtitulo = subtitulo; Grupo = grupo; Cor = cor; Conteudo = conteudo;
+        var app = Avalonia.Application.Current;
+        if (app is not null && app.TryGetResource(icone, null, out var g)) Icone = g as Avalonia.Media.Geometry;
+    }
+    public string Id { get; }
+    public string Titulo { get; }
+    public string Subtitulo { get; }
+    public string Grupo { get; }
+    public string Cor { get; }
+    public Avalonia.Media.Geometry? Icone { get; }
+    public object Conteudo { get; }
+    /// <summary>O primeiro item de cada grupo mostra o nome do grupo acima dele.</summary>
+    public bool PrimeiraDoGrupo { get; set; }
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(TemBadge))] private string _badge = "";
+    public bool TemBadge => Badge != "";
+}
 
 /// <summary>Cérebro da janela principal.</summary>
 public partial class MainViewModel : ObservableObject
@@ -54,6 +73,7 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private string _corStatus = "#16A34A";
     public static string Versao => $"V{typeof(MainViewModel).Assembly.GetName().Version?.ToString(2)}";
     public string Titulo => $"EverSoft {Versao}";
+    public string Subtitulo => $"Gestão pedagógica · {Versao}";
 
     private SlotVM? _slotDoAluno;
 
@@ -65,7 +85,15 @@ public partial class MainViewModel : ObservableObject
         Boletim = new BoletimVM(this);
         Msg = new MsgVM(this);
         Painel.Copiar = CopiarTexto;
+        EverSoft.App.Tema.Mudou += () =>
+        {
+            foreach (var a in Abas) if (a.Conteudo is SlotVM s) foreach (var l in s.Linhas) l.NotificarCores();
+            OnPropertyChanged(nameof(TemaEscuro));
+            Painel.AtualizarCores();
+        };
     }
+
+    public bool TemaEscuro => EverSoft.App.Tema.Escuro;
 
     // ------------------------------------------------------------------ abertura
     /// <summary>Carrega os dados em segundo plano, monta as abas e liga a sincronia automática.</summary>
@@ -133,16 +161,42 @@ public partial class MainViewModel : ObservableObject
     public void MontarAbas()
     {
         string? antes = AbaSelecionada?.Id ?? (Nucleo.Estado.AbaAtiva == "" ? null : Nucleo.Estado.AbaAtiva);
+        _montandoAbas = true;
         Abas.Clear();
         foreach (var s in Nucleo.Slots)
-            Abas.Add(new AbaVM(s.Nome, s.Nome, s.Cor, s.Tipo == "ead" ? "#0B1B33" : "#FFFFFF", new SlotVM(this, s)));
-        Abas.Add(new AbaVM("__just", "Justifica", "#475569", "#FFFFFF", Justifica));
-        Abas.Add(new AbaVM("__agenda", "Agenda", "#475569", "#FFFFFF", Agenda));
-        Abas.Add(new AbaVM("__bol", "Boletim", "#475569", "#FFFFFF", Boletim));
-        Abas.Add(new AbaVM("__msg", "MSG", "#475569", "#FFFFFF", Msg));
+        {
+            string hora = s.Nome.Replace(" - EAD", "");
+            Abas.Add(new AbaVM(s.Nome, hora, s.Tipo == "ead" ? "EAD" : "Presencial", "HORÁRIOS", s.Cor, "IcRelogio", new SlotVM(this, s)));
+        }
+        Abas.Add(new AbaVM("__just", "Justifica", "Faltosos do dia", "FERRAMENTAS", "#2DD4BF", "IcPrancheta", Justifica));
+        Abas.Add(new AbaVM("__agenda", "Agenda", "Lembretes", "FERRAMENTAS", "#2DD4BF", "IcCalendario", Agenda));
+        Abas.Add(new AbaVM("__bol", "Boletim", "Aproveitamento", "FERRAMENTAS", "#2DD4BF", "IcGrafico", Boletim));
+        Abas.Add(new AbaVM("__msg", "MSG", "Aviso em massa", "FERRAMENTAS", "#2DD4BF", "IcMensagem", Msg));
+        for (int i = 0; i < Abas.Count; i++) Abas[i].PrimeiraDoGrupo = i == 0 || Abas[i - 1].Grupo != Abas[i].Grupo;
+        _montandoAbas = false;
         Justifica.Recarregar(); Agenda.Recarregar(); Boletim.Recarregar(); Msg.Recarregar();
+        AtualizarBadges();
         AbaSelecionada = Abas.FirstOrDefault(a => a.Id == antes) ?? Abas.FirstOrDefault();
     }
+
+    private bool _montandoAbas;
+
+    /// <summary>Números ao lado de cada item do menu: PCs em uso, faltosos, contatos.</summary>
+    public void AtualizarBadges()
+    {
+        if (_montandoAbas) return;
+        foreach (var a in Abas)
+            a.Badge = a.Conteudo switch
+            {
+                SlotVM s => s.QtdUsados > 0 ? s.QtdUsados.ToString() : "",
+                JustificaVM j => j.Linhas.Count > 0 ? j.Linhas.Count.ToString() : "",
+                AgendaVM g => g.Itens.Count > 0 ? g.Itens.Count.ToString() : "",
+                BoletimVM b => b.Itens.Count > 0 ? b.Itens.Count.ToString() : "",
+                _ => "",
+            };
+    }
+
+    [RelayCommand] private void AlternarTema() => EverSoft.App.Tema.Alternar();
 
     partial void OnAbaSelecionadaChanged(AbaVM? value)
     {
@@ -158,6 +212,7 @@ public partial class MainViewModel : ObservableObject
     {
         foreach (var a in Abas) if (a.Conteudo is SlotVM s) s.Recarregar();
         Justifica.Recarregar(); Agenda.Recarregar(); Boletim.Recarregar();
+        AtualizarBadges();
         if (_slotDoAluno is not null) MostrarAluno(_slotDoAluno, _slotDoAluno.Selecionada);
     }
 

@@ -38,6 +38,15 @@ public partial class PainelAlunoVM : ObservableObject
     private Task CopiarContatos() =>
         TemAluno && Copiar is not null ? Copiar(TextoContatos(_nomeAtual, _telefones)) : Task.CompletedTask;
     private string _nomeAtual = "";
+    private string _sit = "";
+
+    /// <summary>Cor da etiqueta de status (sem status = laranja, para chamar atenção).</summary>
+    public void AtualizarCores()
+    {
+        var cores = LinhaAluno.CoresDaSituacao(_sit);
+        FundoSituacao = cores is { } c ? Brush.Parse(c.Fundo) : Brush.Parse(TemAluno ? "#EA580C" : "#00000000");
+        TextoSituacao = cores is { } c2 ? Brush.Parse(c2.Texto) : Brushes.White;
+    }
 
     public void Limpar()
     {
@@ -65,8 +74,8 @@ public partial class PainelAlunoVM : ObservableObject
         _telefones = new[] { t1, t2, t3 };
         Situacao = linha.Sit == "" ? "SEM STATUS" : linha.Sit.ToUpperInvariant();
         var cores = LinhaAluno.CoresDaSituacao(linha.Sit);
-        FundoSituacao = cores is { } c ? Brush.Parse(c.Fundo) : Brush.Parse("#E2E8F0");
-        TextoSituacao = cores is { } c2 ? Brush.Parse(c2.Texto) : Brush.Parse("#64748B");
+        _sit = linha.Sit;
+        AtualizarCores();
         if (_nomeAtual != linha.Nome) CarregarFoto(nucleo, linha.Nome);
         _nomeAtual = linha.Nome;
     }

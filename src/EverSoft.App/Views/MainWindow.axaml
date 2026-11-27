@@ -6,70 +6,121 @@
         x:DataType="vm:MainViewModel"
         Title="{Binding Titulo}"
         Icon="/Assets/eversoft-icon.ico"
-        Width="1400" Height="860" MinWidth="1100" MinHeight="680"
+        Width="1440" Height="880" MinWidth="1180" MinHeight="700"
         WindowStartupLocation="CenterScreen" WindowState="Maximized">
 
   <Window.KeyBindings>
     <KeyBinding Gesture="F5" Command="{Binding SincroniaCommand}"/>
   </Window.KeyBindings>
 
-  <DockPanel>
-    <!-- Menu -->
-    <Menu DockPanel.Dock="Top" Background="#0B1B33" Foreground="White">
-      <MenuItem Header="_Arquivo" Foreground="White">
-        <MenuItem Header="Executar Automação TEC" Command="{Binding AutomacaoTecCommand}" Foreground="#1E293B"/>
-        <MenuItem Header="Executar Sincronia" InputGesture="F5" Command="{Binding SincroniaCommand}" Foreground="#1E293B"/>
-        <Separator/>
-        <MenuItem Header="Configurações..." Command="{Binding ConfiguracoesCommand}" Foreground="#1E293B"/>
-        <MenuItem Header="Abrir pasta de dados do app" Command="{Binding AbrirPastaDadosCommand}" Foreground="#1E293B"/>
-        <Separator/>
-        <MenuItem Header="Sair" Click="Sair_Click" Foreground="#1E293B"/>
-      </MenuItem>
-      <MenuItem Header="A_juda" Foreground="White">
-        <MenuItem Header="Sobre o EverSoft" Command="{Binding SobreCommand}" Foreground="#1E293B"/>
-        <Separator/>
-        <MenuItem Header="Desenvolvido por &quot;Inferno Branco&quot; e Gestão Pedagógica" Foreground="#1E293B" FontStyle="Italic"/>
-      </MenuItem>
-    </Menu>
+  <Grid ColumnDefinitions="252,*">
 
-    <!-- Barra de status -->
-    <Border DockPanel.Dock="Bottom" Padding="14,4" Background="#E6EDF8">
-      <StackPanel Orientation="Horizontal" Spacing="8">
-        <Ellipse Width="8" Height="8" Fill="{Binding CorStatus}" VerticalAlignment="Center"/>
-        <TextBlock Text="{Binding StatusTexto}" FontSize="12" Foreground="#334155"/>
-        <ProgressBar IsIndeterminate="True" IsVisible="{Binding Ocupado}" Width="120" Height="4" VerticalAlignment="Center"/>
-      </StackPanel>
+    <!-- ============================== MENU LATERAL ============================== -->
+    <Border Grid.Column="0" Background="{DynamicResource Lateral}" BorderBrush="{DynamicResource LateralBorda}" BorderThickness="0,0,1,0">
+      <DockPanel Margin="12,20,12,14">
+        <!-- Logo -->
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="12" Margin="8,0,0,14">
+          <Image Source="/Assets/eversoft-logo.png" Width="44" Height="44"/>
+          <StackPanel VerticalAlignment="Center" Spacing="1">
+            <TextBlock Text="EverSoft" FontSize="21" FontWeight="Bold" Foreground="White"/>
+            <TextBlock Text="{Binding Subtitulo}" FontSize="11" Foreground="#7F8FAE"/>
+          </StackPanel>
+        </StackPanel>
+
+        <!-- Ações -->
+        <StackPanel DockPanel.Dock="Bottom" Spacing="1">
+          <Border Height="1" Background="{DynamicResource LateralBorda}" Margin="4,6,4,8"/>
+          <Button Classes="lateral" Command="{Binding SincroniaCommand}" ToolTip.Tip="Converte as planilhas e relê os dados (F5)">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <PathIcon Data="{StaticResource IcSincronia}"/>
+              <TextBlock Grid.Column="1" Text="Sincronizar" Margin="12,0,0,0" VerticalAlignment="Center"/>
+              <Border Grid.Column="2" Background="#16294A" CornerRadius="5" Padding="6,1"><TextBlock Text="F5" FontSize="10" Foreground="#8EA0BF"/></Border>
+            </Grid>
+          </Button>
+          <Button Classes="lateral" Command="{Binding AutomacaoTecCommand}" ToolTip.Tip="Grade, Acompanhar Alunos e RelMatAtivas">
+            <StackPanel Orientation="Horizontal" Spacing="12"><PathIcon Data="{StaticResource IcRaio}"/><TextBlock Text="Automação TEC" VerticalAlignment="Center"/></StackPanel>
+          </Button>
+          <Button Classes="lateral" Command="{Binding ConfiguracoesCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="12"><PathIcon Data="{StaticResource IcAjustes}"/><TextBlock Text="Configurações" VerticalAlignment="Center"/></StackPanel>
+          </Button>
+          <Button Classes="lateral" Command="{Binding AbrirPastaDadosCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="12"><PathIcon Data="{StaticResource IcPasta}"/><TextBlock Text="Pasta de dados" VerticalAlignment="Center"/></StackPanel>
+          </Button>
+          <Button Classes="lateral" Command="{Binding AlternarTemaCommand}">
+            <Panel>
+              <StackPanel Orientation="Horizontal" Spacing="12" IsVisible="{Binding !TemaEscuro}"><PathIcon Data="{StaticResource IcLua}"/><TextBlock Text="Tema escuro" VerticalAlignment="Center"/></StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="12" IsVisible="{Binding TemaEscuro}"><PathIcon Data="{StaticResource IcSol}"/><TextBlock Text="Tema claro" VerticalAlignment="Center"/></StackPanel>
+            </Panel>
+          </Button>
+          <Button Classes="lateral" Command="{Binding SobreCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="12"><PathIcon Data="{StaticResource IcInfo}"/><TextBlock Text="Sobre o EverSoft" VerticalAlignment="Center"/></StackPanel>
+          </Button>
+          <TextBlock Text="Desenvolvido por &quot;Inferno Branco&quot; e Gestão Pedagógica" FontSize="10" Foreground="#56678A"
+                     TextWrapping="Wrap" Margin="12,10,8,0"/>
+        </StackPanel>
+
+        <!-- Navegação -->
+        <ListBox Classes="menu" ItemsSource="{Binding Abas}" SelectedItem="{Binding AbaSelecionada}"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:AbaVM">
+              <StackPanel>
+                <TextBlock Text="{Binding Grupo}" IsVisible="{Binding PrimeiraDoGrupo}" FontSize="10" FontWeight="Bold"
+                           LetterSpacing="1.2" Foreground="#56678A" Margin="12,14,0,6"/>
+                <Border Classes="item" CornerRadius="10">
+                  <Grid ColumnDefinitions="4,Auto,*,Auto" Height="46">
+                    <Border Classes="marcador" Width="4" CornerRadius="2" Margin="0,10"/>
+                    <Border Grid.Column="1" Width="32" Height="32" CornerRadius="9" Background="{Binding Cor}" Margin="10,0,12,0">
+                      <PathIcon Data="{Binding Icone}" Width="16" Height="16" Foreground="White"/>
+                    </Border>
+                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="1">
+                      <TextBlock Classes="menutitulo" Text="{Binding Titulo}" FontSize="14"/>
+                      <TextBlock Text="{Binding Subtitulo}" FontSize="11" Foreground="#7F8FAE"/>
+                    </StackPanel>
+                    <Border Grid.Column="3" IsVisible="{Binding TemBadge}" Background="#173253" CornerRadius="999"
+                            Padding="9,2" Margin="0,0,10,0" VerticalAlignment="Center" ToolTip.Tip="Quantidade">
+                      <TextBlock Text="{Binding Badge}" FontSize="11" FontWeight="Bold" Foreground="#7FE3D5"/>
+                    </Border>
+                  </Grid>
+                </Border>
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
     </Border>
 
-    <!-- Painel do aluno (direita) -->
-    <v:PainelAluno DockPanel.Dock="Right" DataContext="{Binding Painel}" IsVisible="{Binding $parent[Window].((vm:MainViewModel)DataContext).MostrarPainel}" Width="280" Margin="0,10,12,10"/>
+    <!-- ============================== CONTEÚDO ============================== -->
+    <Grid Grid.Column="1" RowDefinitions="*,Auto">
+      <Grid ColumnDefinitions="*,Auto" Margin="24,20,20,10">
+        <!-- Conteúdo do item escolhido: cada tipo de ViewModel tem a sua tela -->
+        <ContentControl Content="{Binding AbaSelecionada.Conteudo}">
+          <ContentControl.DataTemplates>
+            <DataTemplate DataType="vm:SlotVM"><v:SlotView/></DataTemplate>
+            <DataTemplate DataType="vm:JustificaVM"><v:JustificaView/></DataTemplate>
+            <DataTemplate DataType="vm:AgendaVM"><v:AgendaView/></DataTemplate>
+            <DataTemplate DataType="vm:BoletimVM"><v:BoletimView/></DataTemplate>
+            <DataTemplate DataType="vm:MsgVM"><v:MsgView/></DataTemplate>
+          </ContentControl.DataTemplates>
+        </ContentControl>
 
-    <DockPanel Margin="12,8,10,8">
-      <!-- Barra de abas em "chips": quebra linha quando não cabe (sem barra de rolagem) -->
-      <ListBox DockPanel.Dock="Top" Classes="abas" ItemsSource="{Binding Abas}" SelectedItem="{Binding AbaSelecionada}"
-               Margin="0,2,0,4" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled">
-        <ListBox.ItemsPanel>
-          <ItemsPanelTemplate><WrapPanel Orientation="Horizontal"/></ItemsPanelTemplate>
-        </ListBox.ItemsPanel>
-        <ListBox.ItemTemplate>
-          <DataTemplate x:DataType="vm:AbaVM">
-            <Border Background="{Binding Cor}" CornerRadius="17" Padding="18,8" MinWidth="96">
-              <TextBlock Text="{Binding Titulo}" Foreground="{Binding CorTexto}" FontWeight="Bold" FontSize="15" HorizontalAlignment="Center"/>
-            </Border>
-          </DataTemplate>
-        </ListBox.ItemTemplate>
-      </ListBox>
+        <!-- Painel do aluno (direita) -->
+        <v:PainelAluno Grid.Column="1" DataContext="{Binding Painel}" Width="300" Margin="20,0,0,0"
+                       IsVisible="{Binding $parent[Window].((vm:MainViewModel)DataContext).MostrarPainel}"/>
+      </Grid>
 
-      <!-- Conteúdo da aba escolhida: cada tipo de ViewModel tem a sua tela -->
-      <ContentControl Content="{Binding AbaSelecionada.Conteudo}">
-        <ContentControl.DataTemplates>
-          <DataTemplate DataType="vm:SlotVM"><v:SlotView/></DataTemplate>
-          <DataTemplate DataType="vm:JustificaVM"><v:JustificaView/></DataTemplate>
-          <DataTemplate DataType="vm:AgendaVM"><v:AgendaView/></DataTemplate>
-          <DataTemplate DataType="vm:BoletimVM"><v:BoletimView/></DataTemplate>
-          <DataTemplate DataType="vm:MsgVM"><v:MsgView/></DataTemplate>
-        </ContentControl.DataTemplates>
-      </ContentControl>
-    </DockPanel>
-  </DockPanel>
+      <!-- Barra de status -->
+      <Border Grid.Row="1" Padding="24,7" Background="{DynamicResource Superficie}" BorderBrush="{DynamicResource Borda}" BorderThickness="0,1,0,0">
+        <DockPanel>
+          <TextBlock DockPanel.Dock="Right" Text="{Binding Titulo}" FontSize="11" Foreground="{DynamicResource TextoSuave}" VerticalAlignment="Center"/>
+          <StackPanel Orientation="Horizontal" Spacing="9">
+            <Ellipse Width="8" Height="8" Fill="{Binding CorStatus}" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding StatusTexto}" FontSize="12" Foreground="{DynamicResource TextoSuave}" VerticalAlignment="Center"/>
+            <ProgressBar IsIndeterminate="True" IsVisible="{Binding Ocupado}" Width="120" Height="4" VerticalAlignment="Center"
+                         Foreground="{DynamicResource Primaria}"/>
+          </StackPanel>
+        </DockPanel>
+      </Border>
+    </Grid>
+  </Grid>
 </Window>

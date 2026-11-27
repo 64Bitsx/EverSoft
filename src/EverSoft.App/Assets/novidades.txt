@@ -1,3 +1,9 @@
+## V3.0
+- Visual novo: menu lateral com o logo, os horários e as ferramentas, com o número de alunos ao lado de cada um.
+- Tema claro e tema escuro: troque no botão "Tema escuro / Tema claro" do menu lateral (fica guardado no computador).
+- Cada turma ganhou cartões de resumo: PCs em uso, sem status, +30 dias sem vir e com comentário.
+- Botões com ícones; tabela, painel do aluno, Justifica, Agenda, Boletim e MSG redesenhados.
+
 ## V2.4
 - Justificativas: o JSON do dia (dd.mm.aa.json, com matrícula, nome e a justificativa antes da /) agora vai sempre para a pasta da rede \\servidortec\TEC_CURSOS\Pedagógico\Documentos\Excel\Justificativas. Se a configuração vinda da versão Python apontava para os Documentos do computador, ela é corrigida sozinha.
 - Depois de enviar os justificados, aparece uma mensagem dizendo onde o JSON foi gravado e quem ficou de fora.

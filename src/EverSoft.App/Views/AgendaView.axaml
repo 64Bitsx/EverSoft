@@ -5,18 +5,24 @@
              x:Class="EverSoft.App.Views.AgendaView"
              x:DataType="vm:AgendaVM">
   <DockPanel>
-    <StackPanel DockPanel.Dock="Top" Margin="2,0,0,8">
-      <TextBlock Classes="titulo" Text="Agenda"/>
-      <TextBlock Classes="subtitulo" Text="Contatos do último envio de lembretes"/>
+    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="12" Margin="0,0,0,16">
+      <Border Width="46" Height="46" CornerRadius="14" Background="{DynamicResource Primaria}">
+        <PathIcon Data="{StaticResource IcCalendario}" Width="22" Height="22" Foreground="{DynamicResource PrimariaTexto}"/>
+      </Border>
+      <StackPanel VerticalAlignment="Center" Spacing="2">
+        <TextBlock Classes="titulo" Text="Agenda"/>
+        <TextBlock Classes="subtitulo" Text="Contatos do último envio de lembretes"/>
+      </StackPanel>
     </StackPanel>
-    <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+    <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">
       <TextBlock DockPanel.Dock="Right" Classes="subtitulo" Text="{Binding Resumo}" VerticalAlignment="Center"/>
       <StackPanel Orientation="Horizontal" Spacing="8">
-        <Button Classes="dourado" Content="Reenviar lembretes" Command="{Binding ReenviarCommand}"/>
-        <Button Content="Limpar agenda" Command="{Binding LimparCommand}"/>
+        <Button Classes="dourado" Command="{Binding ReenviarCommand}"><StackPanel Orientation="Horizontal" Spacing="8"><PathIcon Data="{StaticResource IcSino}"/><TextBlock Text="Reenviar lembretes"/></StackPanel></Button>
+        <Button Command="{Binding LimparCommand}"><StackPanel Orientation="Horizontal" Spacing="8"><PathIcon Data="{StaticResource IcLixeira}" Foreground="#E5383B"/><TextBlock Text="Limpar agenda"/></StackPanel></Button>
       </StackPanel>
     </DockPanel>
-    <DataGrid ItemsSource="{Binding Itens}" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column" BorderBrush="#E2E8F0" BorderThickness="1">
+    <Border Classes="cartao" Padding="0" ClipToBounds="True">
+    <DataGrid ItemsSource="{Binding Itens}" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column">
       <DataGrid.Columns>
         <DataGridTextColumn x:DataType="c:ItemAgenda" Header="NOME" Binding="{Binding Nome}" Width="1.5*"/>
         <DataGridTextColumn x:DataType="c:ItemAgenda" Header="NÚMERO" Binding="{Binding Numero}" Width="136"/>
@@ -26,5 +32,6 @@
         <DataGridTextColumn x:DataType="c:ItemAgenda" Header="NOVATOS" Binding="{Binding Novatos}" Width="80"/>
       </DataGrid.Columns>
     </DataGrid>
+    </Border>
   </DockPanel>
 </UserControl>

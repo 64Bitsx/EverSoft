@@ -2,6 +2,7 @@ using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using EverSoft.Core.Dominio;
+using EverSoft.App;
 
 namespace EverSoft.App.ViewModels;
 
@@ -46,13 +47,21 @@ public partial class LinhaVM : ObservableObject
     public bool Vazia => string.IsNullOrWhiteSpace(Matricula);
 
     public IBrush FundoSit => LinhaAluno.CoresDaSituacao(Sit) is { } c ? Brush.Parse(c.Fundo) : Brushes.Transparent;
-    public IBrush TextoSit => LinhaAluno.CoresDaSituacao(Sit) is { } c ? Brush.Parse(c.Texto) : Brush.Parse("#1E293B");
+    public IBrush TextoSit => LinhaAluno.CoresDaSituacao(Sit) is { } c ? Brush.Parse(c.Texto) : Tema.Pincel("Texto");
 
     /// <summary>Aluno sem status fica com a linha inteira laranja.</summary>
     public bool SemStatus => !Vazia && Dados.Nome != "" && string.IsNullOrWhiteSpace(Dados.Sit);
-    public IBrush FundoLinha => SemStatus ? Brush.Parse("#FDBA74") : Brushes.Transparent;
+    public IBrush FundoLinha => SemStatus ? Tema.Pincel("LinhaSemStatus", "#FED7AA") : Brushes.Transparent;
     /// <summary>Cor da linha selecionada: cinza-claro, ou laranja mais forte para quem está sem status.</summary>
-    public IBrush FundoSelecionado => SemStatus ? Brush.Parse("#FB923C") : Brush.Parse("#E5E7EB");
+    public IBrush FundoSelecionado => SemStatus ? Tema.Pincel("LinhaSemStatusSel", "#FDBA74") : Tema.Pincel("LinhaSelecionada", "#E2E8F0");
+
+    /// <summary>O tema mudou: as cores calculadas aqui precisam ser relidas.</summary>
+    public void NotificarCores()
+    {
+        OnPropertyChanged(nameof(FundoLinha));
+        OnPropertyChanged(nameof(FundoSelecionado));
+        OnPropertyChanged(nameof(TextoSit));
+    }
     public bool UltimaVermelha => Dados.SumidoHaMuitoTempo;
 
     [RelayCommand] private void AbrirSistema() => _dono.AbrirSistemaDaLinha(this);
