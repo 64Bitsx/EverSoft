@@ -57,6 +57,22 @@ public class TelaTests : IDisposable
     }
 
     [AvaloniaFact]
+    public void Configuracoes_abre_sem_fechar_o_programa()
+    {
+        var nucleo = _c.NovoNucleo(new DateTime(2026, 11, 23, 13, 30, 0));
+        var w = new MainWindow(nucleo);
+        w.Show();
+        var tarefa = w.Configuracoes(nucleo.Cfg);
+        Dispatcher.UIThread.RunJobs();
+        var d = w.OwnedWindows.OfType<Dialogo>().Single();
+        Assert.Equal("Configurações", d.Title);
+        d.Close();
+        Esperar(() => tarefa.IsCompleted);
+        Assert.False(tarefa.Result);
+        w.Close();
+    }
+
+    [AvaloniaFact]
     public void Editar_matricula_na_tabela_reordena_e_seleciona_o_aluno()
     {
         var nucleo = _c.NovoNucleo(new DateTime(2026, 11, 23, 13, 30, 0));

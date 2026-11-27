@@ -1,3 +1,6 @@
+## V3.1
+- Corrigido: clicar em Configurações fechava o EverSoft. Agora a tela abre normalmente.
+
 ## V3.0
 - Visual novo: menu lateral com o logo, os horários e as ferramentas, com o número de alunos ao lado de cada um.
 - Tema claro e tema escuro: troque no botão "Tema escuro / Tema claro" do menu lateral (fica guardado no computador).

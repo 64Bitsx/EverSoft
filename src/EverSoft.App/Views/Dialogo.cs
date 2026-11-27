@@ -40,8 +40,11 @@ public class Dialogo : Window
     private readonly ContentControl _area = new();
 
     /// <summary>Só a tela de Configurações (que é comprida) usa barra de rolagem.</summary>
-    public void ComRolagem(double alturaMaxima = 640) =>
+    public void ComRolagem(double alturaMaxima = 640)
+    {
+        _area.Content = null; // solta o corpo antes de colocá-lo na rolagem (senão: "already has a parent")
         _area.Content = new ScrollViewer { Content = Corpo, MaxHeight = alturaMaxima };
+    }
 
     private static Control Ancorar(Control c, Dock d) { DockPanel.SetDock(c, d); return c; }
 
