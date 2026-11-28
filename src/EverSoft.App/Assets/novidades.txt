@@ -1,3 +1,6 @@
+## V3.2
+- O botão Sincronizar (F5) agora também relê as pastas de fotos dos alunos: foto nova aparece sem fechar e abrir o EverSoft.
+
 ## V3.1
 - Corrigido: clicar em Configurações fechava o EverSoft. Agora a tela abre normalmente.
 

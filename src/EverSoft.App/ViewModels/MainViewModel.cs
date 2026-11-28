@@ -534,6 +534,8 @@ public partial class MainViewModel : ObservableObject
         foreach (var a in avisos) log(a);
         _gradesVistas = DatasDasGrades();
         MontarAbas();
+        log("Relendo as pastas de fotos dos alunos...");
+        Painel.EsquecerFotos(Nucleo);
         Status($"Sincronizado às {DateTime.Now:HH:mm}.");
         log("Pronto.");
     }

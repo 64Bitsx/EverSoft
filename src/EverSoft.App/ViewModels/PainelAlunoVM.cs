@@ -81,6 +81,13 @@ public partial class PainelAlunoVM : ObservableObject
     }
 
     /// <summary>A foto vem da rede: carrega em segundo plano para a tela não travar.</summary>
+    /// <summary>Esquece as fotos já lidas: a próxima seleção relê a pasta (fotos novas aparecem).</summary>
+    public void EsquecerFotos(Core.Servicos.Nucleo? nucleo = null)
+    {
+        _fotos.Clear();
+        if (nucleo is not null && _nomeAtual is { Length: > 0 } nome && TemAluno) CarregarFoto(nucleo, nome);
+    }
+
     private void CarregarFoto(Core.Servicos.Nucleo nucleo, string nome)
     {
         if (_fotos.TryGetValue(nome, out var pronta)) { Foto = pronta; AvisoFoto = pronta is null ? "(sem foto)" : ""; return; }
